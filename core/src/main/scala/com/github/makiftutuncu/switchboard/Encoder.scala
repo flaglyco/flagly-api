@@ -14,4 +14,8 @@ object Encoder {
   def apply[I, O](implicit encoder: Encoder[I, O]): Encoder[I, O] = encoder
 
   def encode[I, O](input: I)(implicit encoder: Encoder[I, O]): O = encoder.encode(input)
+
+  implicit class syntax[I, O](val input: I)(implicit encoder: Encoder[I, O]) {
+    def encode: O = encoder.encode(input)
+  }
 }

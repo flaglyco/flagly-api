@@ -12,4 +12,8 @@ object Decoder {
   def apply[I, O](implicit decoder: Decoder[I, O]): Decoder[I, O] = decoder
 
   def decode[I, O](input: I)(implicit decoder: Decoder[I, O]): Option[O] = decoder.decode(input)
+
+  implicit class syntax[I, O](val input: I)(implicit decoder: Decoder[I, O]) {
+    def decode: Option[O] = decoder.decode(input)
+  }
 }
