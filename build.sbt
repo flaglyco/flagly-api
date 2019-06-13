@@ -10,3 +10,9 @@ lazy val `sb-circe` = (project in file("circe")).dependsOn(`sb-core`).settings(
     "io.circe" %% "circe-parser" % "0.11.1"
   )
 )
+
+lazy val `sb-play-json` = (project in file("play-json")).dependsOn(`sb-core`).settings(
+  libraryDependencies ++= Seq(
+    "com.typesafe.play" %% "play-json" % "2.7.3"
+  )
+)
