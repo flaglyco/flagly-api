@@ -1,5 +1,5 @@
 organization := "com.github.makiftutuncu"
-name         := "switchboard-akka-http-server"
+name         := "sb-akka-http-server"
 version      := "0.1.0-SNAPSHOT"
 scalaVersion := "2.12.8"
 
