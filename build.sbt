@@ -6,7 +6,6 @@ lazy val `flagly-api` = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
     libraryDependencies ++= Seq(
-      guice,
-      "co.flagly" %% "flagly-core" % "0.1.0-SNAPSHOT"
+      guice
     )
   )

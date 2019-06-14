@@ -1,1 +1,7 @@
 GET     /       co.flagly.api.controllers.RootController.index
+
+POST    /flags        co.flagly.api.controllers.FlagController.create
+GET     /flags        co.flagly.api.controllers.FlagController.getAll
+GET     /flags/:id    co.flagly.api.controllers.FlagController.get(id: java.util.UUID)
+PUT     /flags/:id    co.flagly.api.controllers.FlagController.update(id: java.util.UUID)
+DELETE  /flags/:id    co.flagly.api.controllers.FlagController.delete(id: java.util.UUID)
