@@ -10,22 +10,13 @@ import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import akka.util.ByteString
 import com.github.makiftutuncu.switchboard.Encoder.syntax
 import com.github.makiftutuncu.switchboard.circe._
-import com.github.makiftutuncu.switchboard._
+import com.github.makiftutuncu.switchboard.{Flag, Switchboard}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
-class FlagController extends FutureDirectives with FailFastCirceSupport {
-  val http: Http = new Http {}
-
-  val dataSource: DataSource = new DataSource {
-    override def getFlag[A](id: UUID)(implicit decoder: Decoder[Flag[A]], ec: ExecutionContext): Future[Option[Flag[A]]] = Future.successful(None)
-    override def setFlag[A](flag: Flag[A])(implicit encoder: Encoder[Flag[A]], ec: ExecutionContext): Future[Flag[A]]    = Future.successful(flag)
-  }
-
-  val switchboard: Switchboard = new Switchboard(http, dataSource)
-
+class FlagController(val switchboard: Switchboard)(implicit ec: ExecutionContext) extends FutureDirectives with FailFastCirceSupport {
   val errorHandler: ExceptionHandler =
     ExceptionHandler {
       case NonFatal(t) =>
@@ -37,14 +28,17 @@ class FlagController extends FutureDirectives with FailFastCirceSupport {
 
   val route: Route =
     handleExceptions(errorHandler) {
-      getAllFlags ~ getFlag
+      setFlag ~ getFlag
     }
 
-  private def getAllFlags: Route = {
+  private def setFlag: Route = {
     path("flags") {
-      get {
-        val flags = s"[${Flags.maintenanceMode.encode},${Flags.httpTimeout.encode}]"
-        completeAsJson(flags)
+      post {
+        entity(as[Flag[Boolean]]) { flag: Flag[Boolean] =>
+          onSuccess(switchboard.dataSource.setFlag(flag)) { flag =>
+            completeAsJson(flag.encode)
+          }
+        }
       }
     }
   }
@@ -52,14 +46,9 @@ class FlagController extends FutureDirectives with FailFastCirceSupport {
   private def getFlag: Route = {
     path("flags" / Segment) { flagId =>
       get {
-        val id = UUID.fromString(flagId)
-
-        if (id == Flags.maintenanceMode.id) {
-          completeAsJson(Flags.maintenanceMode.encode)
-        } else if (id == Flags.httpTimeout.id) {
-          completeAsJson(Flags.httpTimeout.encode)
-        } else {
-          complete(HttpResponse(StatusCodes.NotFound, entity = s"Flag $id is not found!"))
+        onSuccess(switchboard.dataSource.getFlag[Boolean](UUID.fromString(flagId))) {
+          case None       => complete(HttpResponse(StatusCodes.NotFound, entity = s"Flag ${UUID.fromString(flagId)} is not found!"))
+          case Some(flag) => completeAsJson(flag.encode)
         }
       }
     }

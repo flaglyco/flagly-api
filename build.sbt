@@ -16,3 +16,9 @@ lazy val `sb-play-json` = (project in file("play-json")).dependsOn(`sb-core`).se
     "com.typesafe.play" %% "play-json" % "2.7.3"
   )
 )
+
+lazy val `sb-redis` = (project in file("redis")).dependsOn(`sb-core`).settings(
+  libraryDependencies ++= Seq(
+    "net.debasishg" %% "redisclient" % "3.9"
+  )
+)
