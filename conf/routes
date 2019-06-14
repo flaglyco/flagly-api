@@ -1,0 +1,1 @@
+GET     /       co.flagly.api.controllers.RootController.index
