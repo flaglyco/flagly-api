@@ -1,6 +1,6 @@
 package co.flagly.api.models
 
-import co.flagly.core.{DataType, Flag}
+import co.flagly.data.{DataType, Flag}
 import play.api.libs.json.{JsValue, Json, Reads}
 
 final case class CreateFlag(name: String,

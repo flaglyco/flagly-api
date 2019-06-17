@@ -7,6 +7,8 @@ lazy val `flagly-api` = (project in file("."))
   .settings(
     libraryDependencies ++= Seq(
       guice,
-      "co.flagly" %% "flagly-core" % "0.1.0-SNAPSHOT"
+      "co.flagly"              %% "flagly-scala-sdk"   % "0.1.0-SNAPSHOT",
+      "org.scalatest"          %% "scalatest"          % "3.0.5"           % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.0"           % Test
     )
   )

@@ -3,7 +3,7 @@ package co.flagly.api.repositories
 import java.util.UUID
 
 import co.flagly.api.errors.FlaglyError
-import co.flagly.core.Flag
+import co.flagly.data.Flag
 import javax.inject.Singleton
 
 @Singleton

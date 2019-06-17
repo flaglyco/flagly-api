@@ -3,7 +3,7 @@ package co.flagly.api
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import co.flagly.core._
+import co.flagly.data.{BooleanFlag, DataType, Flag, NumberFlag, TextFlag}
 import play.api.libs.json._
 
 package object models {

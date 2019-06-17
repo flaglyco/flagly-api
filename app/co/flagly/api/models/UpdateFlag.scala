@@ -2,7 +2,7 @@ package co.flagly.api.models
 
 import java.time.ZonedDateTime
 
-import co.flagly.core.{BooleanFlag, Flag, NumberFlag, TextFlag}
+import co.flagly.data.{BooleanFlag, Flag, NumberFlag, TextFlag}
 import play.api.libs.json.{JsValue, Json, Reads}
 
 final case class UpdateFlag(name: Option[String],
