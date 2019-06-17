@@ -1,18 +1,18 @@
-package co.flagly.api
+package co.flagly.api.repositories
 
 import java.util.UUID
 
 import co.flagly.api.errors.FlaglyError
-import co.flagly.api.models.Flag
+import co.flagly.core.Flag
 import javax.inject.Singleton
 
 @Singleton
 class FlagRepository {
   private val testFlags: List[Flag] =
     List(
-      Flag("test-flag-1", "Test Flag 1", "foo"),
-      Flag("test-flag-2", "Test Flag 2", "1"),
-      Flag("test-flag-3", "Test Flag 3", "true")
+      Flag.text("test-flag-1", "Test Flag 1", "foo"),
+      Flag.number("test-flag-2", "Test Flag 2", 1),
+      Flag.boolean("test-flag-3", "Test Flag 3", value = true)
     )
 
   private var flags: Map[UUID, Flag] = testFlags.map(f => f.id -> f).toMap

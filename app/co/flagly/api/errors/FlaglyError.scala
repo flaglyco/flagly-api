@@ -8,6 +8,10 @@ sealed trait FlaglyError extends Exception {
 }
 
 object FlaglyError {
+  case object InvalidCreateFlag extends FlaglyError {
+    override def toResult: Result = BadRequest("Invalid create flag data!")
+  }
+
   case object AlreadyExists extends FlaglyError {
     override def toResult: Result = BadRequest("Already exists!")
   }

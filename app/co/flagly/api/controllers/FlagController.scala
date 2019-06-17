@@ -3,12 +3,12 @@ package co.flagly.api.controllers
 import java.util.UUID
 
 import co.flagly.api.errors.FlaglyError
-import co.flagly.api.models.{CreateFlag, UpdateFlag}
+import co.flagly.api.models.{CreateFlag, UpdateFlag, flagWrites}
 import co.flagly.api.services.FlagService
 import javax.inject.{Inject, Singleton}
 import play.api.http.ContentTypes
 import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request, Result}
+import play.api.mvc._
 
 @Singleton
 class FlagController @Inject()(flagService: FlagService,

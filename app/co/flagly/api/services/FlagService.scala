@@ -2,14 +2,19 @@ package co.flagly.api.services
 
 import java.util.UUID
 
-import co.flagly.api.FlagRepository
 import co.flagly.api.errors.FlaglyError
-import co.flagly.api.models.{CreateFlag, Flag, UpdateFlag}
+import co.flagly.api.models.{CreateFlag, UpdateFlag}
+import co.flagly.api.repositories.FlagRepository
+import co.flagly.core.Flag
 import javax.inject.{Inject, Singleton}
 
 @Singleton
 class FlagService @Inject()(flagRepository: FlagRepository) {
-  def create(createFlag: CreateFlag): Either[FlaglyError, Flag] = flagRepository.create(createFlag.toFlag)
+  def create(createFlag: CreateFlag): Either[FlaglyError, Flag] =
+    createFlag.toFlag match {
+      case None       => Left(FlaglyError.InvalidCreateFlag)
+      case Some(flag) => flagRepository.create(flag)
+    }
 
   def getAll: Either[FlaglyError, List[Flag]] = flagRepository.getAll
 
