@@ -1,6 +1,6 @@
-# Switchboard
+# Flagly API
 
-Switchboard is a feature-flag/remote-configuration manager.
+Flagly is a feature-flag/remote-configuration manager.
 
 ## Table of Contents
 
@@ -16,13 +16,13 @@ Switchboard is a feature-flag/remote-configuration manager.
 
 ## Development and Running
 
-Switchboard is built with SBT. So, standard SBT tasks like `clean`, `compile` and `run` can be used.
+Flagly is built with SBT. So, standard tasks like `clean`, `compile` and `run` can be used inside SBT console.
 
 ## Testing
 
-To run all the tests, use `test` task of SBT.
+To run all the tests, use `test` in SBT console.
 
-To run specific test(s), use `testOnly fullyQualifiedTestClassName1 fullyQualifiedTestClassName2 ...`
+To run specific test(s), use `testOnly testClassName1 testClassName2 ...` in SBT console.
 
 ## Contributing
 
@@ -30,5 +30,4 @@ All contributions are more than welcome. Please feel free to send a pull request
 
 ## License
 
-Switchboard is licensed with MIT License. See [LICENSE.md](LICENSE.md) for details.
-
+Flagly is licensed with MIT License. See [LICENSE.md](LICENSE.md) for details.
