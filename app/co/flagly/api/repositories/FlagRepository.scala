@@ -4,9 +4,7 @@ import java.util.UUID
 
 import co.flagly.api.errors.FlaglyError
 import co.flagly.data.Flag
-import javax.inject.Singleton
 
-@Singleton
 class FlagRepository {
   private val testFlags: List[Flag] =
     List(

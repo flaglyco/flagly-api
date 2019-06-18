@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  flagly-api:
+    container_name: flagly-api
+    image: postgres:alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - flagly-api-volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=flagly-api-user
+      - POSTGRES_PASSWORD=flagly-api-pass
+      - POSTGRES_DB=flagly-api
+
+volumes:
+  flagly-api-volume:
+    driver: local

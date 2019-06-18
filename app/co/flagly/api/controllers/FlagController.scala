@@ -5,14 +5,11 @@ import java.util.UUID
 import co.flagly.api.errors.FlaglyError
 import co.flagly.api.models.{CreateFlag, UpdateFlag, flagWrites}
 import co.flagly.api.services.FlagService
-import javax.inject.{Inject, Singleton}
 import play.api.http.ContentTypes
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
-@Singleton
-class FlagController @Inject()(flagService: FlagService,
-                               cc: ControllerComponents) extends AbstractController(cc) {
+class FlagController(flagService: FlagService, cc: ControllerComponents) extends AbstractController(cc) {
   val create: Action[CreateFlag] =
     Action(parse.json[CreateFlag]) { request: Request[CreateFlag] =>
       respond(flagService.create(request.body), Created)
