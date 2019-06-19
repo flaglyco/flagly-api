@@ -7,7 +7,7 @@ import co.flagly.api.services.FlagService
 import play.api.ApplicationLoader.Context
 import play.api.BuiltInComponentsFromContext
 import play.api.db.evolutions.EvolutionsComponents
-import play.api.db.{DBComponents, HikariCPComponents}
+import play.api.db.{DBComponents, Database, HikariCPComponents}
 import play.api.http.HttpErrorHandler
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
@@ -26,7 +26,9 @@ class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx
 
   override def httpFilters: Seq[EssentialFilter] = Seq.empty
 
-  lazy val flagRepository: FlagRepository = new FlagRepository
+  lazy val database: Database = dbApi.database("default")
+
+  lazy val flagRepository: FlagRepository = new FlagRepository(database)
 
   lazy val flagService: FlagService = new FlagService(flagRepository)
 

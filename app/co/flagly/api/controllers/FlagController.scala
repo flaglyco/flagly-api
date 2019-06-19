@@ -3,13 +3,12 @@ package co.flagly.api.controllers
 import java.util.UUID
 
 import co.flagly.api.errors.FlaglyError
-import co.flagly.api.models.{CreateFlag, UpdateFlag, flagWrites}
+import co.flagly.api.models.FlagExtensions.flagWrites
+import co.flagly.api.models.{CreateFlag, UpdateFlag}
 import co.flagly.api.services.FlagService
-import play.api.http.ContentTypes
-import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
-class FlagController(flagService: FlagService, cc: ControllerComponents) extends AbstractController(cc) {
+class FlagController(flagService: FlagService, cc: ControllerComponents) extends BaseController(cc) {
   val create: Action[CreateFlag] =
     Action(parse.json[CreateFlag]) { request: Request[CreateFlag] =>
       respond(flagService.create(request.body), Created)
@@ -24,7 +23,7 @@ class FlagController(flagService: FlagService, cc: ControllerComponents) extends
     Action {
       respond(
         flagService.get(id).flatMap {
-          case None       => Left(FlaglyError.DoesNotExist)
+          case None       => Left(FlaglyError.doesNotExist(s"Flag $id"))
           case Some(flag) => Right(flag)
         }
       )
@@ -38,17 +37,5 @@ class FlagController(flagService: FlagService, cc: ControllerComponents) extends
   def delete(id: UUID): Action[AnyContent] =
     Action {
       respondUnit(flagService.delete(id))
-    }
-
-  private def respond[A: Writes](either: Either[FlaglyError, A], status: Status = Ok): Result =
-    either match {
-      case Left(e)  => e.toResult
-      case Right(a) => status(Json.toJson(a)).as(ContentTypes.JSON)
-    }
-
-  private def respondUnit(either: Either[FlaglyError, Unit], status: Status = Ok): Result =
-    either match {
-      case Left(e)  => e.toResult
-      case Right(_) => status
     }
 }

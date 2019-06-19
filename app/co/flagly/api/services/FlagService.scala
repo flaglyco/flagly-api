@@ -8,11 +8,7 @@ import co.flagly.api.repositories.FlagRepository
 import co.flagly.data.Flag
 
 class FlagService(flagRepository: FlagRepository) {
-  def create(createFlag: CreateFlag): Either[FlaglyError, Flag] =
-    createFlag.toFlag match {
-      case None       => Left(FlaglyError.InvalidCreateFlag)
-      case Some(flag) => flagRepository.create(flag)
-    }
+  def create(createFlag: CreateFlag): Either[FlaglyError, Flag] = flagRepository.create(createFlag.toFlag)
 
   def getAll: Either[FlaglyError, List[Flag]] = flagRepository.getAll
 

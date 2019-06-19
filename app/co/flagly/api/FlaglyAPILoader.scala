@@ -8,7 +8,7 @@ class FlaglyAPILoader extends ApplicationLoader {
     LoggerConfigurator(context.environment.classLoader).foreach { loggerConfigurator =>
       loggerConfigurator.configure(context.environment)
     }
-    
+
     new FlaglyAPIComponents(context).application
   }
 }

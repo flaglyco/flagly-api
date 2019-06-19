@@ -2,51 +2,136 @@ package co.flagly.api.repositories
 
 import java.util.UUID
 
+import anorm.SQL
 import co.flagly.api.errors.FlaglyError
+import co.flagly.api.models.FlagExtensions.flagRowParser
 import co.flagly.data.Flag
+import play.api.db.Database
 
-class FlagRepository {
-  private val testFlags: List[Flag] =
-    List(
-      Flag.text("test-flag-1", "Test Flag 1", "foo"),
-      Flag.number("test-flag-2", "Test Flag 2", 1),
-      Flag.boolean("test-flag-3", "Test Flag 3", value = true)
-    )
-
-  private var flags: Map[UUID, Flag] = testFlags.map(f => f.id -> f).toMap
-
+class FlagRepository(db: Database) extends Repository(db) {
   def create(flag: Flag): Either[FlaglyError, Flag] =
-    if (flags.contains(flag.id)) {
-      Left(FlaglyError.AlreadyExists)
-    } else {
-      flags += (flag.id -> flag)
-      Right(flag)
+    withConnection { implicit connection =>
+      val sql =
+        SQL(
+          """
+            |INSERT INTO flags(id, name, description, value, created_at, updated_at)
+            |VALUES({id}::uuid, {name}, {description}, {value}, {createdAt}, {updatedAt})
+          """.stripMargin
+        ).on(
+          "id"          -> flag.id,
+          "name"        -> flag.name,
+          "description" -> flag.description,
+          "value"       -> flag.value,
+          "createdAt"   -> flag.createdAt,
+          "updatedAt"   -> flag.updatedAt
+        )
+
+      val affectedRows = sql.executeUpdate()
+
+      if (affectedRows != 1) {
+        val error = FlaglyError.dbOperation(s"cannot create flag, affected $affectedRows rows")
+        logger.error(error.message)
+        Left(error)
+      } else {
+        Right(flag)
+      }
     }
 
   def getAll: Either[FlaglyError, List[Flag]] =
-    Right(flags.values.toList.sortBy(_.name))
+    withConnection { implicit connection =>
+      val sql =
+        SQL(
+          """
+            |SELECT id, name, description, value, created_at, updated_at
+            |FROM flags
+          """.stripMargin
+        )
+
+      val flags = sql.executeQuery().as(flagRowParser.*)
+
+      Right(flags)
+    }
 
   def get(id: UUID): Either[FlaglyError, Option[Flag]] =
-    Right(flags.get(id))
+    withConnection { implicit connection =>
+      val sql =
+        SQL(
+          """
+            |SELECT id, name, description, value, created_at, updated_at
+            |FROM flags
+            |WHERE id = {id}::uuid
+          """.stripMargin
+        ).on(
+          "id" -> id
+        )
+
+      val maybeFlag = sql.executeQuery().as(flagRowParser.singleOpt)
+
+      Right(maybeFlag)
+    }
 
   def update(id: UUID, updater: Flag => Flag): Either[FlaglyError, Flag] =
-    flags.get(id) match {
-      case None =>
-        Left(FlaglyError.DoesNotExist)
+    withTransaction { implicit connection =>
+      get(id).flatMap {
+        case None =>
+          val error = FlaglyError.dbOperation(s"cannot update flag $id, it does not exist")
+          logger.error(error.message)
+          Left(error)
 
-      case Some(flag) =>
-        val newFlag = updater(flag)
-        flags += (id -> newFlag)
-        Right(newFlag)
+        case Some(flag) =>
+          val newFlag = updater(flag)
+
+          val sql =
+            SQL(
+              """
+                |UPDATE flags
+                |SET name = {name},
+                |    description = {description},
+                |    value = {value},
+                |    updated_at = {updatedAt}
+                |WHERE id = {id}::uuid
+              """.stripMargin
+            ).on(
+              "id"          -> newFlag.id,
+              "name"        -> newFlag.name,
+              "description" -> newFlag.description,
+              "value"       -> newFlag.value,
+              "updatedAt"   -> newFlag.updatedAt
+            )
+
+          val affectedRows = sql.executeUpdate()
+
+          if (affectedRows != 1) {
+            val error = FlaglyError.dbTransaction(s"cannot update flag $id, affected $affectedRows rows")
+            logger.error(error.message)
+            connection.rollback()
+            Left(error)
+          } else {
+            Right(newFlag)
+          }
+      }
     }
 
   def delete(id: UUID): Either[FlaglyError, Unit] =
-    flags.get(id) match {
-      case None =>
-        Left(FlaglyError.DoesNotExist)
+    withConnection { implicit connection =>
+      val sql =
+        SQL(
+          """
+            |DELETE FROM flags
+            |WHERE id = {id}::uuid
+          """.stripMargin
+        ).on(
+          "id" -> id
+        )
 
-      case Some(flag) =>
-        flags -= flag.id
+      val affectedRows = sql.executeUpdate()
+
+      if (affectedRows != 1) {
+        val error = FlaglyError.dbOperation(s"cannot delete flag $id, affected $affectedRows rows")
+        logger.error(error.message)
+        Left(error)
+      } else {
         Right(())
+      }
     }
 }
