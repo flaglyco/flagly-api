@@ -1,4 +1,4 @@
-package co.flagly.api.errors
+package co.flagly.api
 
 import play.api.http.HttpErrorHandler
 import play.api.mvc.Results.{BadRequest, InternalServerError}
@@ -6,7 +6,7 @@ import play.api.mvc.{RequestHeader, Result}
 
 import scala.concurrent.Future
 
-class ErrorHandler extends HttpErrorHandler {
+class FlaglyAPIErrorHandler extends HttpErrorHandler {
   override def onClientError(request: RequestHeader,
                              statusCode: Int,
                              message: String): Future[Result] =

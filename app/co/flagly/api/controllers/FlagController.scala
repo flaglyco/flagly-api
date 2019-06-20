@@ -2,7 +2,7 @@ package co.flagly.api.controllers
 
 import java.util.UUID
 
-import co.flagly.api.errors.FlaglyError
+import co.flagly.api.errors.Errors
 import co.flagly.api.models.FlagExtensions.flagWrites
 import co.flagly.api.models.{CreateFlag, UpdateFlag}
 import co.flagly.api.services.FlagService
@@ -23,7 +23,7 @@ class FlagController(flagService: FlagService, cc: ControllerComponents) extends
     Action {
       respond(
         flagService.get(id).flatMap {
-          case None       => Left(FlaglyError.doesNotExist(s"Flag $id"))
+          case None       => Left(Errors.doesNotExist(s"Flag $id"))
           case Some(flag) => Right(flag)
         }
       )

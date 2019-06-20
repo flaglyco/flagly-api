@@ -2,10 +2,9 @@ package co.flagly.api.services
 
 import java.util.UUID
 
-import co.flagly.api.errors.FlaglyError
 import co.flagly.api.models.{CreateFlag, UpdateFlag}
 import co.flagly.api.repositories.FlagRepository
-import co.flagly.data.Flag
+import co.flagly.core.{Flag, FlaglyError}
 
 class FlagService(flagRepository: FlagRepository) {
   def create(createFlag: CreateFlag): Either[FlaglyError, Flag] = flagRepository.create(createFlag.toFlag)

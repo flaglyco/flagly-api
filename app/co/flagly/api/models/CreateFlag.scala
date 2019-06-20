@@ -1,12 +1,12 @@
 package co.flagly.api.models
 
-import co.flagly.data.Flag
+import co.flagly.core.Flag
 import play.api.libs.json.{Json, Reads}
 
 final case class CreateFlag(name: String,
                             description: Option[String],
                             value: Boolean) { self =>
-  def toFlag: Flag = Flag(name, description.getOrElse(""), value)
+  def toFlag: Flag = Flag.of(name, description.getOrElse(""), value)
 }
 
 object CreateFlag {
