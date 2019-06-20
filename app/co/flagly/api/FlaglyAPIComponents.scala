@@ -1,7 +1,6 @@
 package co.flagly.api
 
 import co.flagly.api.controllers.{FlagController, RootController}
-import co.flagly.api.errors.ErrorHandler
 import co.flagly.api.repositories.FlagRepository
 import co.flagly.api.services.FlagService
 import play.api.ApplicationLoader.Context
@@ -22,7 +21,7 @@ class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx
   // Touch the lazy val so database migrations are run on startup
   applicationEvolutions
 
-  override lazy val httpErrorHandler: HttpErrorHandler = new ErrorHandler
+  override lazy val httpErrorHandler: HttpErrorHandler = new FlaglyAPIErrorHandler
 
   override def httpFilters: Seq[EssentialFilter] = Seq.empty
 

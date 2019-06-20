@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import anorm.{RowParser, Success}
-import co.flagly.data.Flag
+import co.flagly.core.Flag
 import play.api.libs.json._
 
 object FlagExtensions extends JsonExtensions {
@@ -19,7 +19,7 @@ object FlagExtensions extends JsonExtensions {
           createdAt   <- (json \ "createdAt").asOpt[ZonedDateTime]
           updatedAt   <- (json \ "updatedAt").asOpt[ZonedDateTime]
         } yield {
-          Flag(id, name, description, value, createdAt, updatedAt)
+          Flag.of(id, name, description, value, createdAt, updatedAt)
         }
 
         maybeFlag match {
@@ -52,6 +52,6 @@ object FlagExtensions extends JsonExtensions {
       val createdAt   = row[ZonedDateTime]("created_at")
       val updatedAt   = row[ZonedDateTime]("updated_at")
 
-      Success(Flag(id, name, description, value, createdAt, updatedAt))
+      Success(Flag.of(id, name, description, value, createdAt, updatedAt))
     }
 }

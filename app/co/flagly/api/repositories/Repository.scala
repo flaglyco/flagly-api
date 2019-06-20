@@ -2,7 +2,8 @@ package co.flagly.api.repositories
 
 import java.sql.Connection
 
-import co.flagly.api.errors.FlaglyError
+import co.flagly.api.errors.Errors
+import co.flagly.core.FlaglyError
 import org.postgresql.util.PSQLException
 import play.api.Logging
 import play.api.db.{Database, TransactionIsolationLevel}
@@ -15,12 +16,12 @@ class Repository(db: Database) extends Logging {
       db.withConnection(action)
     } catch {
       case Repository.UniqueKeyInsertViolation(key, value) =>
-        val error = FlaglyError.alreadyExists(key, value)
+        val error = Errors.alreadyExists(key, value)
         logger.warn(error.message)
         Left(error)
 
       case NonFatal(t) =>
-        val error = FlaglyError.dbOperation(t.getMessage)
+        val error = Errors.dbOperation(t.getMessage)
         logger.error(error.message, t)
         Left(error)
     }
@@ -30,7 +31,7 @@ class Repository(db: Database) extends Logging {
       db.withTransaction(TransactionIsolationLevel.RepeatedRead)(action)
     } catch {
       case NonFatal(t) =>
-        val error = FlaglyError.dbTransaction(t.getMessage)
+        val error = Errors.dbTransaction(t.getMessage)
         logger.error(error.message, t)
         Left(error)
     }

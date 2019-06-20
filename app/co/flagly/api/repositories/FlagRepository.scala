@@ -3,9 +3,9 @@ package co.flagly.api.repositories
 import java.util.UUID
 
 import anorm.SQL
-import co.flagly.api.errors.FlaglyError
+import co.flagly.api.errors.Errors
 import co.flagly.api.models.FlagExtensions.flagRowParser
-import co.flagly.data.Flag
+import co.flagly.core.{Flag, FlaglyError}
 import play.api.db.Database
 
 class FlagRepository(db: Database) extends Repository(db) {
@@ -29,7 +29,7 @@ class FlagRepository(db: Database) extends Repository(db) {
       val affectedRows = sql.executeUpdate()
 
       if (affectedRows != 1) {
-        val error = FlaglyError.dbOperation(s"cannot create flag, affected $affectedRows rows")
+        val error = Errors.dbOperation(s"cannot create flag, affected $affectedRows rows")
         logger.error(error.message)
         Left(error)
       } else {
@@ -74,7 +74,7 @@ class FlagRepository(db: Database) extends Repository(db) {
     withTransaction { implicit connection =>
       get(id).flatMap {
         case None =>
-          val error = FlaglyError.dbOperation(s"cannot update flag $id, it does not exist")
+          val error = Errors.dbOperation(s"cannot update flag $id, it does not exist")
           logger.error(error.message)
           Left(error)
 
@@ -102,7 +102,7 @@ class FlagRepository(db: Database) extends Repository(db) {
           val affectedRows = sql.executeUpdate()
 
           if (affectedRows != 1) {
-            val error = FlaglyError.dbTransaction(s"cannot update flag $id, affected $affectedRows rows")
+            val error = Errors.dbTransaction(s"cannot update flag $id, affected $affectedRows rows")
             logger.error(error.message)
             connection.rollback()
             Left(error)
@@ -127,7 +127,7 @@ class FlagRepository(db: Database) extends Repository(db) {
       val affectedRows = sql.executeUpdate()
 
       if (affectedRows != 1) {
-        val error = FlaglyError.dbOperation(s"cannot delete flag $id, affected $affectedRows rows")
+        val error = Errors.dbOperation(s"cannot delete flag $id, affected $affectedRows rows")
         logger.error(error.message)
         Left(error)
       } else {
