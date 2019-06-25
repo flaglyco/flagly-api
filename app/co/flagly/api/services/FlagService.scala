@@ -13,6 +13,8 @@ class FlagService(flagRepository: FlagRepository) {
 
   def get(id: UUID): Either[FlaglyError, Option[Flag]] = flagRepository.get(id)
 
+  def getByName(name: String): Either[FlaglyError, Option[Flag]] = flagRepository.getByName(name)
+
   def update(id: UUID, updateFlag: UpdateFlag): Either[FlaglyError, Flag] = flagRepository.update(id, updateFlag.toUpdatedFlag)
 
   def delete(id: UUID): Either[FlaglyError, Unit] = flagRepository.delete(id)

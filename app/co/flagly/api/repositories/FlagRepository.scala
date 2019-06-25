@@ -1,10 +1,10 @@
 package co.flagly.api.repositories
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
-import anorm.SQL
+import anorm.{RowParser, SQL, Success}
 import co.flagly.api.errors.Errors
-import co.flagly.api.models.FlagExtensions.flagRowParser
 import co.flagly.core.{Flag, FlaglyError}
 import play.api.db.Database
 
@@ -63,6 +63,24 @@ class FlagRepository(db: Database) extends Repository(db) {
           """.stripMargin
         ).on(
           "id" -> id
+        )
+
+      val maybeFlag = sql.executeQuery().as(flagRowParser.singleOpt)
+
+      Right(maybeFlag)
+    }
+
+  def getByName(name: String): Either[FlaglyError, Option[Flag]] =
+    withConnection { implicit connection =>
+      val sql =
+        SQL(
+          """
+            |SELECT id, name, description, value, created_at, updated_at
+            |FROM flags
+            |WHERE name = {name}
+          """.stripMargin
+        ).on(
+          "name" -> name
         )
 
       val maybeFlag = sql.executeQuery().as(flagRowParser.singleOpt)
@@ -133,5 +151,17 @@ class FlagRepository(db: Database) extends Repository(db) {
       } else {
         Right(())
       }
+    }
+
+  implicit val flagRowParser: RowParser[Flag] =
+    RowParser[Flag] { row =>
+      val id          = row[UUID]("id")
+      val name        = row[String]("name")
+      val description = row[String]("description")
+      val value       = row[Boolean]("value")
+      val createdAt   = row[ZonedDateTime]("created_at")
+      val updatedAt   = row[ZonedDateTime]("updated_at")
+
+      Success(Flag.of(id, name, description, value, createdAt, updatedAt))
     }
 }

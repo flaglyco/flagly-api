@@ -1,6 +1,5 @@
 package co.flagly.api.controllers
 
-import co.flagly.api.errors.Errors
 import co.flagly.core.FlaglyError
 import play.api.http.ContentTypes
 import play.api.libs.json.{Json, Writes}

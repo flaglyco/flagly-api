@@ -3,9 +3,9 @@ package co.flagly.api.controllers
 import java.util.UUID
 
 import co.flagly.api.errors.Errors
-import co.flagly.api.models.FlagExtensions.flagWrites
 import co.flagly.api.models.{CreateFlag, UpdateFlag}
 import co.flagly.api.services.FlagService
+import co.flagly.core.FlagJson.flagWrites
 import play.api.mvc._
 
 class FlagController(flagService: FlagService, cc: ControllerComponents) extends BaseController(cc) {
@@ -14,12 +14,23 @@ class FlagController(flagService: FlagService, cc: ControllerComponents) extends
       respond(flagService.create(request.body), Created)
     }
 
-  val getAll: Action[AnyContent] =
+  def get(name: Option[String]): Action[AnyContent] =
     Action {
-      respond(flagService.getAll)
+      name match {
+        case None =>
+          respond(flagService.getAll)
+
+        case Some(n) =>
+          respond(
+            flagService.getByName(n).flatMap {
+              case None       => Left(Errors.doesNotExist(s"Flag $n"))
+              case Some(flag) => Right(flag)
+            }
+          )
+      }
     }
 
-  def get(id: UUID): Action[AnyContent] =
+  def getById(id: UUID): Action[AnyContent] =
     Action {
       respond(
         flagService.get(id).flatMap {
