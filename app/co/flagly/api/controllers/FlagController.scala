@@ -9,20 +9,20 @@ import co.flagly.core.FlagJson.flagWrites
 import play.api.mvc._
 
 class FlagController(flagService: FlagService, cc: ControllerComponents) extends BaseController(cc) {
-  val create: Action[CreateFlag] =
+  def create(applicationId: UUID): Action[CreateFlag] =
     Action(parse.json[CreateFlag]) { request: Request[CreateFlag] =>
-      respond(flagService.create(request.body), Created)
+      respond(flagService.create(applicationId, request.body), Created)
     }
 
-  def get(name: Option[String]): Action[AnyContent] =
+  def get(applicationId: UUID, name: Option[String]): Action[AnyContent] =
     Action {
       name match {
         case None =>
-          respond(flagService.getAll)
+          respond(flagService.getAll(applicationId))
 
         case Some(n) =>
           respond(
-            flagService.getByName(n).flatMap {
+            flagService.getByName(applicationId, n).flatMap {
               case None       => Left(Errors.doesNotExist(s"Flag $n"))
               case Some(flag) => Right(flag)
             }
@@ -30,23 +30,23 @@ class FlagController(flagService: FlagService, cc: ControllerComponents) extends
       }
     }
 
-  def getById(id: UUID): Action[AnyContent] =
+  def getById(applicationId: UUID, flagId: UUID): Action[AnyContent] =
     Action {
       respond(
-        flagService.get(id).flatMap {
-          case None       => Left(Errors.doesNotExist(s"Flag $id"))
+        flagService.get(applicationId, flagId).flatMap {
+          case None       => Left(Errors.doesNotExist(s"Flag $flagId"))
           case Some(flag) => Right(flag)
         }
       )
     }
 
-  def update(id: UUID): Action[UpdateFlag] =
+  def update(applicationId: UUID, flagId: UUID): Action[UpdateFlag] =
     Action(parse.json[UpdateFlag]) { request: Request[UpdateFlag] =>
-      respond(flagService.update(id, request.body))
+      respond(flagService.update(applicationId, flagId, request.body))
     }
 
-  def delete(id: UUID): Action[AnyContent] =
+  def delete(applicationId: UUID, flagId: UUID): Action[AnyContent] =
     Action {
-      respondUnit(flagService.delete(id))
+      respondUnit(flagService.delete(applicationId, flagId))
     }
 }

@@ -10,6 +10,7 @@ final case class UpdateFlag(name: Option[String],
   def toUpdatedFlag(flag: Flag): Flag =
     Flag.of(
       flag.id,
+      flag.applicationId,
       self.name.getOrElse(flag.name),
       self.description.getOrElse(flag.description),
       self.value.getOrElse(flag.value),

@@ -14,16 +14,17 @@ class FlagRepository(db: Database) extends Repository(db) {
       val sql =
         SQL(
           """
-            |INSERT INTO flags(id, name, description, value, created_at, updated_at)
-            |VALUES({id}::uuid, {name}, {description}, {value}, {createdAt}, {updatedAt})
+            |INSERT INTO flags(id, application_id, name, description, value, created_at, updated_at)
+            |VALUES({id}::uuid, {applicationId}::uuid, {name}, {description}, {value}, {createdAt}, {updatedAt})
           """.stripMargin
         ).on(
-          "id"          -> flag.id,
-          "name"        -> flag.name,
-          "description" -> flag.description,
-          "value"       -> flag.value,
-          "createdAt"   -> flag.createdAt,
-          "updatedAt"   -> flag.updatedAt
+          "id"            -> flag.id,
+          "applicationId" -> flag.applicationId,
+          "name"          -> flag.name,
+          "description"   -> flag.description,
+          "value"         -> flag.value,
+          "createdAt"     -> flag.createdAt,
+          "updatedAt"     -> flag.updatedAt
         )
 
       val affectedRows = sql.executeUpdate()
@@ -37,14 +38,17 @@ class FlagRepository(db: Database) extends Repository(db) {
       }
     }
 
-  def getAll: Either[FlaglyError, List[Flag]] =
+  def getAll(applicationId: UUID): Either[FlaglyError, List[Flag]] =
     withConnection { implicit connection =>
       val sql =
         SQL(
           """
-            |SELECT id, name, description, value, created_at, updated_at
+            |SELECT id, application_id, name, description, value, created_at, updated_at
             |FROM flags
+            |WHERE application_id = {applicationId}
           """.stripMargin
+        ).on(
+          "applicationId" -> applicationId
         )
 
       val flags = sql.executeQuery().as(flagRowParser.*)
@@ -52,17 +56,18 @@ class FlagRepository(db: Database) extends Repository(db) {
       Right(flags)
     }
 
-  def get(id: UUID): Either[FlaglyError, Option[Flag]] =
+  def get(applicationId: UUID, flagId: UUID): Either[FlaglyError, Option[Flag]] =
     withConnection { implicit connection =>
       val sql =
         SQL(
           """
             |SELECT id, name, description, value, created_at, updated_at
             |FROM flags
-            |WHERE id = {id}::uuid
+            |WHERE id = {flagId}::uuid AND application_id = {applicationId}::uuid
           """.stripMargin
         ).on(
-          "id" -> id
+          "flagId"        -> flagId,
+          "applicationId" -> applicationId
         )
 
       val maybeFlag = sql.executeQuery().as(flagRowParser.singleOpt)
@@ -70,17 +75,18 @@ class FlagRepository(db: Database) extends Repository(db) {
       Right(maybeFlag)
     }
 
-  def getByName(name: String): Either[FlaglyError, Option[Flag]] =
+  def getByName(applicationId: UUID, name: String): Either[FlaglyError, Option[Flag]] =
     withConnection { implicit connection =>
       val sql =
         SQL(
           """
             |SELECT id, name, description, value, created_at, updated_at
             |FROM flags
-            |WHERE name = {name}
+            |WHERE application_id = {applicationId} AND name = {name}
           """.stripMargin
         ).on(
-          "name" -> name
+          "applicationId" -> applicationId,
+          "name"          -> name
         )
 
       val maybeFlag = sql.executeQuery().as(flagRowParser.singleOpt)
@@ -88,11 +94,11 @@ class FlagRepository(db: Database) extends Repository(db) {
       Right(maybeFlag)
     }
 
-  def update(id: UUID, updater: Flag => Flag): Either[FlaglyError, Flag] =
+  def update(applicationId: UUID, flagId: UUID, updater: Flag => Flag): Either[FlaglyError, Flag] =
     withTransaction { implicit connection =>
-      get(id).flatMap {
+      get(applicationId, flagId).flatMap {
         case None =>
-          val error = Errors.dbOperation(s"cannot update flag $id, it does not exist")
+          val error = Errors.dbOperation(s"cannot update flag $flagId, it does not exist")
           logger.error(error.message)
           Left(error)
 
@@ -103,24 +109,25 @@ class FlagRepository(db: Database) extends Repository(db) {
             SQL(
               """
                 |UPDATE flags
-                |SET name = {name},
+                |SET name        = {name},
                 |    description = {description},
-                |    value = {value},
-                |    updated_at = {updatedAt}
-                |WHERE id = {id}::uuid
+                |    value       = {value},
+                |    updated_at  = {updatedAt}
+                |WHERE id = {flagId}::uuid AND application_id = {applicationId}::uuid
               """.stripMargin
             ).on(
-              "id"          -> newFlag.id,
-              "name"        -> newFlag.name,
-              "description" -> newFlag.description,
-              "value"       -> newFlag.value,
-              "updatedAt"   -> newFlag.updatedAt
+              "flagId"        -> flagId,
+              "applicationId" -> applicationId,
+              "name"          -> newFlag.name,
+              "description"   -> newFlag.description,
+              "value"         -> newFlag.value,
+              "updatedAt"     -> newFlag.updatedAt
             )
 
           val affectedRows = sql.executeUpdate()
 
           if (affectedRows != 1) {
-            val error = Errors.dbTransaction(s"cannot update flag $id, affected $affectedRows rows")
+            val error = Errors.dbTransaction(s"cannot update flag $flagId, affected $affectedRows rows")
             logger.error(error.message)
             connection.rollback()
             Left(error)
@@ -130,22 +137,23 @@ class FlagRepository(db: Database) extends Repository(db) {
       }
     }
 
-  def delete(id: UUID): Either[FlaglyError, Unit] =
+  def delete(applicationId: UUID, flagId: UUID): Either[FlaglyError, Unit] =
     withConnection { implicit connection =>
       val sql =
         SQL(
           """
             |DELETE FROM flags
-            |WHERE id = {id}::uuid
+            |WHERE id = {flagId}::uuid AND application_id = {applicationId}::uuid
           """.stripMargin
         ).on(
-          "id" -> id
+          "flagId"        -> flagId,
+          "applicationId" -> applicationId
         )
 
       val affectedRows = sql.executeUpdate()
 
       if (affectedRows != 1) {
-        val error = Errors.dbOperation(s"cannot delete flag $id, affected $affectedRows rows")
+        val error = Errors.dbOperation(s"cannot delete flag $flagId, affected $affectedRows rows")
         logger.error(error.message)
         Left(error)
       } else {
@@ -155,13 +163,14 @@ class FlagRepository(db: Database) extends Repository(db) {
 
   implicit val flagRowParser: RowParser[Flag] =
     RowParser[Flag] { row =>
-      val id          = row[UUID]("id")
-      val name        = row[String]("name")
-      val description = row[String]("description")
-      val value       = row[Boolean]("value")
-      val createdAt   = row[ZonedDateTime]("created_at")
-      val updatedAt   = row[ZonedDateTime]("updated_at")
+      val id            = row[UUID]("id")
+      val applicationId = row[UUID]("applicationId")
+      val name          = row[String]("name")
+      val description   = row[String]("description")
+      val value         = row[Boolean]("value")
+      val createdAt     = row[ZonedDateTime]("created_at")
+      val updatedAt     = row[ZonedDateTime]("updated_at")
 
-      Success(Flag.of(id, name, description, value, createdAt, updatedAt))
+      Success(Flag.of(id, applicationId, name, description, value, createdAt, updatedAt))
     }
 }

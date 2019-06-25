@@ -7,15 +7,15 @@ import co.flagly.api.repositories.FlagRepository
 import co.flagly.core.{Flag, FlaglyError}
 
 class FlagService(flagRepository: FlagRepository) {
-  def create(createFlag: CreateFlag): Either[FlaglyError, Flag] = flagRepository.create(createFlag.toFlag)
+  def create(applicationId: UUID, createFlag: CreateFlag): Either[FlaglyError, Flag] = flagRepository.create(createFlag.toFlag(applicationId))
 
-  def getAll: Either[FlaglyError, List[Flag]] = flagRepository.getAll
+  def getAll(applicationId: UUID): Either[FlaglyError, List[Flag]] = flagRepository.getAll(applicationId)
 
-  def get(id: UUID): Either[FlaglyError, Option[Flag]] = flagRepository.get(id)
+  def get(applicationId: UUID, flagId: UUID): Either[FlaglyError, Option[Flag]] = flagRepository.get(applicationId, flagId)
 
-  def getByName(name: String): Either[FlaglyError, Option[Flag]] = flagRepository.getByName(name)
+  def getByName(applicationId: UUID, name: String): Either[FlaglyError, Option[Flag]] = flagRepository.getByName(applicationId, name)
 
-  def update(id: UUID, updateFlag: UpdateFlag): Either[FlaglyError, Flag] = flagRepository.update(id, updateFlag.toUpdatedFlag)
+  def update(applicationId: UUID, flagId: UUID, updateFlag: UpdateFlag): Either[FlaglyError, Flag] = flagRepository.update(applicationId, flagId, updateFlag.toUpdatedFlag)
 
-  def delete(id: UUID): Either[FlaglyError, Unit] = flagRepository.delete(id)
+  def delete(applicationId: UUID, flagId: UUID): Either[FlaglyError, Unit] = flagRepository.delete(applicationId, flagId)
 }
