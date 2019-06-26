@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccountController(accountService: AccountService, cc: ControllerComponents) extends BaseController(cc) {
   val create: Action[CreateAccount] =
-    publicAction[CreateAccount] { ctx: Ctx[CreateAccount] =>
+    publicActionWithBody[CreateAccount] { ctx: Ctx[CreateAccount] =>
       accountService.create(ctx.request.body).map {
         case (account, session) =>
           resultAsJson(account, Created).withHeaders(AccountCtx.sessionTokenHeaderName -> session.token)

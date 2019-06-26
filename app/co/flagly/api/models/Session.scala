@@ -17,7 +17,7 @@ object Session {
   implicit val sessionRowParser: RowParser[Session] =
     RowParser[Session] { row =>
       val id        = row[UUID]("id")
-      val accountId = row[UUID]("accountId")
+      val accountId = row[UUID]("account_id")
       val token     = row[String]("token")
       val createdAt = row[ZonedDateTime]("created_at")
       val updatedAt = row[ZonedDateTime]("updated_at")

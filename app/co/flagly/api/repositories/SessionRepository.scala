@@ -4,6 +4,7 @@ import java.sql.Connection
 
 import anorm.SQL
 import co.flagly.api.models.Session
+import co.flagly.api.models.Session.sessionRowParser
 
 class SessionRepository {
   def create(session: Session)(implicit connection: Connection): Session = {
@@ -24,5 +25,20 @@ class SessionRepository {
     sql.executeUpdate()
 
     session
+  }
+
+  def getByToken(token: String)(implicit connection: Connection): Option[Session] = {
+    val sql =
+      SQL(
+        """
+          |SELECT id, account_id, token, created_at, updated_at
+          |FROM sessions
+          |WHERE token = {token}
+        """.stripMargin
+      ).on(
+        "token" -> token
+      )
+
+    sql.executeQuery().as(sessionRowParser.singleOpt)
   }
 }

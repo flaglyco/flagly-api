@@ -38,8 +38,8 @@ class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx
 
   lazy val rootController: RootController               = new RootController(controllerComponents)
   lazy val accountController: AccountController         = new AccountController(accountService, controllerComponents)
-  lazy val applicationController: ApplicationController = new ApplicationController(applicationService, controllerComponents)
-  lazy val flagController: FlagController               = new FlagController(flagService, controllerComponents)
+  lazy val applicationController: ApplicationController = new ApplicationController(applicationService, accountService, controllerComponents)
+  lazy val flagController: FlagController               = new FlagController(flagService, accountService, controllerComponents)
 
   override def router: Router =
     new Routes(

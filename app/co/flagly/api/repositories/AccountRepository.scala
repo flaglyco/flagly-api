@@ -1,9 +1,11 @@
 package co.flagly.api.repositories
 
 import java.sql.Connection
+import java.util.UUID
 
 import anorm.SQL
 import co.flagly.api.models.Account
+import co.flagly.api.models.Account.accountRowParser
 
 class AccountRepository {
   def create(account: Account)(implicit connection: Connection): Account = {
@@ -26,5 +28,20 @@ class AccountRepository {
     sql.executeUpdate()
 
     account
+  }
+
+  def get(id: UUID)(implicit connection: Connection): Option[Account] = {
+    val sql =
+      SQL(
+        """
+          |SELECT id, name, email, password, salt, created_at, updated_at
+          |FROM accounts
+          |WHERE id = {id}::uuid
+        """.stripMargin
+      ).on(
+        "id" -> id
+      )
+
+    sql.executeQuery().as(accountRowParser.singleOpt)
   }
 }
