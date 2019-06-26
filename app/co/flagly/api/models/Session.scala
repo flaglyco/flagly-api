@@ -14,15 +14,6 @@ final case class Session(id: UUID,
                          updatedAt: ZonedDateTime)
 
 object Session {
-  def apply(accountId: UUID): Session =
-    new Session(
-      id        = UUID.randomUUID,
-      accountId = accountId,
-      token     = TokenUtils.generateToken(),
-      createdAt = ZDT.now,
-      updatedAt = ZDT.now
-    )
-
   implicit val sessionRowParser: RowParser[Session] =
     RowParser[Session] { row =>
       val id        = row[UUID]("id")
@@ -33,4 +24,13 @@ object Session {
 
       Success(Session(id, accountId, token, createdAt, updatedAt))
     }
+
+  def apply(accountId: UUID): Session =
+    new Session(
+      id        = UUID.randomUUID,
+      accountId = accountId,
+      token     = TokenUtils.generateToken(),
+      createdAt = ZDT.now,
+      updatedAt = ZDT.now
+    )
 }

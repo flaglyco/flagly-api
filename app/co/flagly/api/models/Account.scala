@@ -20,7 +20,7 @@ final case class Account(id: UUID,
 object Account {
   implicit val accountWrites: Writes[Account] =
     Json.writes[Account].transform { json: JsObject =>
-      json - "password" - "salt" - "deletedAt"
+      json - "password" - "salt"
     }
 
   implicit val accountRowParser: RowParser[Account] =

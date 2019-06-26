@@ -2,6 +2,12 @@ GET     /       co.flagly.api.controllers.RootController.index
 
 POST    /accounts       co.flagly.api.controllers.AccountController.create
 
+POST    /applications                   co.flagly.api.controllers.ApplicationController.create
+GET     /applications                   co.flagly.api.controllers.ApplicationController.get(name: Option[String])
+GET     /applications/:applicationId    co.flagly.api.controllers.ApplicationController.getById(applicationId: java.util.UUID)
+PUT     /applications/:applicationId    co.flagly.api.controllers.ApplicationController.update(applicationId: java.util.UUID)
+DELETE  /applications/:applicationId    co.flagly.api.controllers.ApplicationController.delete(applicationId: java.util.UUID)
+
 POST    /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.create(applicationId: java.util.UUID)
 GET     /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.get(applicationId: java.util.UUID, name: Option[String])
 GET     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)

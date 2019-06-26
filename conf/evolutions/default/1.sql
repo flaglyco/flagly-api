@@ -13,7 +13,7 @@ CREATE TABLE "accounts"(
 CREATE TABLE "applications"(
     "id"         UUID PRIMARY KEY,
     "account_id" UUID NOT NULL REFERENCES "accounts"("id"),
-    "name"       TEXT NOT NULL,
+    "name"       TEXT NOT NULL UNIQUE,
     "token"      TEXT NOT NULL UNIQUE,
     "created_at" TIMESTAMPTZ(3) NOT NULL,
     "updated_at" TIMESTAMPTZ(3) NOT NULL
