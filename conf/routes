@@ -1,5 +1,7 @@
 GET     /       co.flagly.api.controllers.RootController.index
 
+POST    /accounts       co.flagly.api.controllers.AccountController.create
+
 POST    /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.create(applicationId: java.util.UUID)
 GET     /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.get(applicationId: java.util.UUID, name: Option[String])
 GET     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)

@@ -2,51 +2,57 @@ package co.flagly.api.controllers
 
 import java.util.UUID
 
-import co.flagly.api.errors.Errors
-import co.flagly.api.models.{CreateFlag, UpdateFlag}
+import co.flagly.api.auth.Ctx
 import co.flagly.api.services.FlagService
+import co.flagly.api.views.{CreateFlag, UpdateFlag}
 import co.flagly.core.FlagJson.flagWrites
+import co.flagly.core.FlaglyError
 import play.api.mvc._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class FlagController(flagService: FlagService, cc: ControllerComponents) extends BaseController(cc) {
   def create(applicationId: UUID): Action[CreateFlag] =
-    Action(parse.json[CreateFlag]) { request: Request[CreateFlag] =>
-      respond(flagService.create(applicationId, request.body), Created)
+    publicAction[CreateFlag] { ctx: Ctx[CreateFlag] =>
+      flagService.create(applicationId, ctx.request.body).map { flag =>
+        resultAsJson(flag, Created)
+      }
     }
 
   def get(applicationId: UUID, name: Option[String]): Action[AnyContent] =
-    Action {
+    publicAction { _: Ctx[AnyContent] =>
       name match {
         case None =>
-          respond(flagService.getAll(applicationId))
+          flagService.getAll(applicationId).map(flags => resultAsJson(flags))
 
         case Some(n) =>
-          respond(
-            flagService.getByName(applicationId, n).flatMap {
-              case None       => Left(Errors.doesNotExist(s"Flag $n"))
-              case Some(flag) => Right(flag)
-            }
-          )
+          flagService.getByName(applicationId, n).flatMap {
+            case None       => Future.failed(FlaglyError.of(s"Flag '$n' of application $applicationId does not exist!"))
+            case Some(flag) => Future.successful(resultAsJson(flag))
+          }
       }
     }
 
   def getById(applicationId: UUID, flagId: UUID): Action[AnyContent] =
-    Action {
-      respond(
-        flagService.get(applicationId, flagId).flatMap {
-          case None       => Left(Errors.doesNotExist(s"Flag $flagId"))
-          case Some(flag) => Right(flag)
-        }
-      )
+    publicAction { _: Ctx[AnyContent] =>
+      flagService.get(applicationId, flagId).flatMap {
+        case None       => Future.failed(FlaglyError.of(s"Flag '$flagId' does not exist!"))
+        case Some(flag) => Future.successful(resultAsJson(flag))
+      }
     }
 
   def update(applicationId: UUID, flagId: UUID): Action[UpdateFlag] =
-    Action(parse.json[UpdateFlag]) { request: Request[UpdateFlag] =>
-      respond(flagService.update(applicationId, flagId, request.body))
+    publicAction[UpdateFlag] { ctx: Ctx[UpdateFlag] =>
+      flagService.update(applicationId, flagId, ctx.request.body).map { flag =>
+        resultAsJson(flag)
+      }
     }
 
   def delete(applicationId: UUID, flagId: UUID): Action[AnyContent] =
-    Action {
-      respondUnit(flagService.delete(applicationId, flagId))
+    publicAction { _: Ctx[AnyContent] =>
+      flagService.delete(applicationId, flagId).map { _ =>
+        Ok
+      }
     }
 }

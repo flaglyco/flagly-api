@@ -1,7 +1,8 @@
 package co.flagly.api
 
-import play.api.http.HttpErrorHandler
-import play.api.mvc.Results.{BadRequest, InternalServerError}
+import co.flagly.core.FlaglyError
+import play.api.http.{ContentTypes, HttpErrorHandler}
+import play.api.mvc.Results.{BadRequest, InternalServerError, Status}
 import play.api.mvc.{RequestHeader, Result}
 
 import scala.concurrent.Future
@@ -14,5 +15,11 @@ class FlaglyAPIErrorHandler extends HttpErrorHandler {
 
   override def onServerError(request: RequestHeader,
                              exception: Throwable): Future[Result] =
-    Future.successful(InternalServerError(exception.getMessage))
+    exception match {
+      case flaglyError: FlaglyError =>
+        Future.successful(Status(flaglyError.code)(flaglyError.toString).as(ContentTypes.JSON))
+
+      case t =>
+        Future.successful(InternalServerError(t.getMessage))
+    }
 }

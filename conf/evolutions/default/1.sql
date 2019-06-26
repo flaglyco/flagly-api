@@ -31,8 +31,17 @@ CREATE TABLE "flags"(
     UNIQUE("application_id", "name")
 );
 
+CREATE TABLE "sessions"(
+    "id"         UUID PRIMARY KEY,
+    "account_id" UUID NOT NULL REFERENCES "accounts"("id"),
+    "token"      TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL
+);
+
 -- !Downs
 
+DROP TABLE "sessions";
 DROP TABLE "flags";
 DROP TABLE "applications";
 DROP TABLE "accounts";
