@@ -13,3 +13,5 @@ GET     /applications/:applicationId/flags              co.flagly.api.controller
 GET     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)
 PUT     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.update(applicationId: java.util.UUID, flagId: java.util.UUID)
 DELETE  /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.delete(applicationId: java.util.UUID, flagId: java.util.UUID)
+
+GET     /flags/:name        co.flagly.api.controllers.SDKController.get(name: String)
