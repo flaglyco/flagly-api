@@ -8,7 +8,6 @@ import play.api.libs.json.{Json, Reads, Writes}
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
 
 class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
   def resultAsJson[A: Writes](a: A, status: Status = Ok): Result = status(Json.toJson(a)).as(ContentTypes.JSON)
