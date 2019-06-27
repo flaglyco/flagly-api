@@ -2,51 +2,57 @@ package co.flagly.api.controllers
 
 import java.util.UUID
 
-import co.flagly.api.errors.Errors
-import co.flagly.api.models.{CreateFlag, UpdateFlag}
-import co.flagly.api.services.FlagService
+import co.flagly.api.auth.AccountCtx
+import co.flagly.api.services.{AccountService, FlagService}
+import co.flagly.api.views.{CreateFlag, UpdateFlag}
 import co.flagly.core.FlagJson.flagWrites
+import co.flagly.core.FlaglyError
 import play.api.mvc._
 
-class FlagController(flagService: FlagService, cc: ControllerComponents) extends BaseController(cc) {
-  val create: Action[CreateFlag] =
-    Action(parse.json[CreateFlag]) { request: Request[CreateFlag] =>
-      respond(flagService.create(request.body), Created)
-    }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-  def get(name: Option[String]): Action[AnyContent] =
-    Action {
-      name match {
-        case None =>
-          respond(flagService.getAll)
-
-        case Some(n) =>
-          respond(
-            flagService.getByName(n).flatMap {
-              case None       => Left(Errors.doesNotExist(s"Flag $n"))
-              case Some(flag) => Right(flag)
-            }
-          )
+class FlagController(flagService: FlagService, accountService: AccountService, cc: ControllerComponents) extends BaseController(cc) {
+  def create(applicationId: UUID): Action[CreateFlag] =
+    privateActionWithBody[CreateFlag](accountService) { ctx: AccountCtx[CreateFlag] =>
+      flagService.create(applicationId, ctx.request.body).map { flag =>
+        resultAsJson(flag, Created)
       }
     }
 
-  def getById(id: UUID): Action[AnyContent] =
-    Action {
-      respond(
-        flagService.get(id).flatMap {
-          case None       => Left(Errors.doesNotExist(s"Flag $id"))
-          case Some(flag) => Right(flag)
-        }
-      )
+  def get(applicationId: UUID, name: Option[String]): Action[AnyContent] =
+    privateAction(accountService) { _: AccountCtx[AnyContent] =>
+      name match {
+        case None =>
+          flagService.getAll(applicationId).map(flags => resultAsJson(flags))
+
+        case Some(n) =>
+          flagService.getByName(applicationId, n).flatMap {
+            case None       => Future.failed(FlaglyError.of(s"Flag '$n' of application $applicationId does not exist!"))
+            case Some(flag) => Future.successful(resultAsJson(flag))
+          }
+      }
     }
 
-  def update(id: UUID): Action[UpdateFlag] =
-    Action(parse.json[UpdateFlag]) { request: Request[UpdateFlag] =>
-      respond(flagService.update(id, request.body))
+  def getById(applicationId: UUID, flagId: UUID): Action[AnyContent] =
+    privateAction(accountService) { _: AccountCtx[AnyContent] =>
+      flagService.get(applicationId, flagId).flatMap {
+        case None       => Future.failed(FlaglyError.of(s"Flag '$flagId' does not exist!"))
+        case Some(flag) => Future.successful(resultAsJson(flag))
+      }
     }
 
-  def delete(id: UUID): Action[AnyContent] =
-    Action {
-      respondUnit(flagService.delete(id))
+  def update(applicationId: UUID, flagId: UUID): Action[UpdateFlag] =
+    privateActionWithBody[UpdateFlag](accountService) { ctx: AccountCtx[UpdateFlag] =>
+      flagService.update(applicationId, flagId, ctx.request.body).map { flag =>
+        resultAsJson(flag)
+      }
+    }
+
+  def delete(applicationId: UUID, flagId: UUID): Action[AnyContent] =
+    privateAction(accountService) { _: AccountCtx[AnyContent] =>
+      flagService.delete(applicationId, flagId).map { _ =>
+        Ok
+      }
     }
 }

@@ -1,8 +1,8 @@
 package co.flagly.api
 
-import co.flagly.api.controllers.{FlagController, RootController}
-import co.flagly.api.repositories.FlagRepository
-import co.flagly.api.services.FlagService
+import co.flagly.api.controllers.{AccountController, ApplicationController, FlagController, RootController}
+import co.flagly.api.repositories.{AccountRepository, ApplicationRepository, FlagRepository, SessionRepository}
+import co.flagly.api.services.{AccountService, ApplicationService, FlagService}
 import play.api.ApplicationLoader.Context
 import play.api.BuiltInComponentsFromContext
 import play.api.db.evolutions.EvolutionsComponents
@@ -27,17 +27,26 @@ class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx
 
   lazy val database: Database = dbApi.database("default")
 
-  lazy val flagRepository: FlagRepository = new FlagRepository(database)
+  lazy val accountRepository: AccountRepository         = new AccountRepository
+  lazy val applicationRepository: ApplicationRepository = new ApplicationRepository
+  lazy val flagRepository: FlagRepository               = new FlagRepository
+  lazy val sessionRepository: SessionRepository         = new SessionRepository
 
-  lazy val flagService: FlagService = new FlagService(flagRepository)
+  lazy val accountService: AccountService         = new AccountService(accountRepository, sessionRepository, database)
+  lazy val applicationService: ApplicationService = new ApplicationService(applicationRepository, database)
+  lazy val flagService: FlagService               = new FlagService(flagRepository, database)
 
-  lazy val rootController: RootController = new RootController(controllerComponents)
-  lazy val flagController: FlagController = new FlagController(flagService, controllerComponents)
+  lazy val rootController: RootController               = new RootController(controllerComponents)
+  lazy val accountController: AccountController         = new AccountController(accountService, controllerComponents)
+  lazy val applicationController: ApplicationController = new ApplicationController(applicationService, accountService, controllerComponents)
+  lazy val flagController: FlagController               = new FlagController(flagService, accountService, controllerComponents)
 
   override def router: Router =
     new Routes(
       httpErrorHandler,
       rootController,
+      accountController,
+      applicationController,
       flagController
     )
 }
