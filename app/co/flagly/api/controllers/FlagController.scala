@@ -5,14 +5,16 @@ import java.util.UUID
 import co.flagly.api.auth.AccountCtx
 import co.flagly.api.services.{AccountService, FlagService}
 import co.flagly.api.views.{CreateFlag, UpdateFlag}
-import co.flagly.core.FlagJson.flagWrites
-import co.flagly.core.FlaglyError
+import co.flagly.core.{Flag, FlaglyError}
+import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class FlagController(flagService: FlagService, accountService: AccountService, cc: ControllerComponents) extends BaseController(cc) {
+  implicit val flagWrites: Writes[Flag] = Writes[Flag](flag => Json.parse(flag.toString))
+
   def create(applicationId: UUID): Action[CreateFlag] =
     privateActionWithBody[CreateFlag](accountService) { ctx: AccountCtx[CreateFlag] =>
       flagService.create(applicationId, ctx.request.body).map { flag =>
