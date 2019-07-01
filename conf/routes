@@ -1,6 +1,8 @@
 GET     /       co.flagly.api.controllers.RootController.index
 
-POST    /accounts       co.flagly.api.controllers.AccountController.create
+POST    /accounts/register      co.flagly.api.controllers.AccountController.register
+POST    /accounts/login         co.flagly.api.controllers.AccountController.login
+POST    /accounts/logout        co.flagly.api.controllers.AccountController.logout
 
 POST    /applications                   co.flagly.api.controllers.ApplicationController.create
 GET     /applications                   co.flagly.api.controllers.ApplicationController.get(name: Option[String])
@@ -13,3 +15,5 @@ GET     /applications/:applicationId/flags              co.flagly.api.controller
 GET     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)
 PUT     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.update(applicationId: java.util.UUID, flagId: java.util.UUID)
 DELETE  /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.delete(applicationId: java.util.UUID, flagId: java.util.UUID)
+
+GET     /flags/:name        co.flagly.api.controllers.SDKController.get(name: String)

@@ -51,12 +51,12 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
         FlaglyError.of(s"Cannot get application '$name' of account '$accountId'!", t)
     }
 
-  def getByToken(accountId: UUID, token: String)(implicit ec: ExecutionContext): Future[Option[Application]] =
+  def getByToken(token: String)(implicit ec: ExecutionContext): Future[Option[Application]] =
     withDB { implicit connection =>
-      applications.getByToken(accountId, token)
+      applications.getByToken(token)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get application of account '$accountId' for token '$token'!", t)
+        FlaglyError.of(s"Cannot get application for token '$token'!", t)
     }
 
   def update(accountId: UUID, applicationId: UUID, updateApplication: UpdateApplication)(implicit ec: ExecutionContext): Future[Application] =

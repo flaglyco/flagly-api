@@ -44,4 +44,19 @@ class AccountRepository {
 
     sql.executeQuery().as(accountRowParser.singleOpt)
   }
+
+  def getByEmail(email: String)(implicit connection: Connection): Option[Account] = {
+    val sql =
+      SQL(
+        """
+          |SELECT id, name, email, password, salt, created_at, updated_at
+          |FROM accounts
+          |WHERE email = {email}
+        """.stripMargin
+      ).on(
+        "email" -> email
+      )
+
+    sql.executeQuery().as(accountRowParser.singleOpt)
+  }
 }

@@ -2,13 +2,13 @@ package co.flagly.api.views
 
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Reads}
 
-final case class CreateAccount(name: String,
-                               email: String,
-                               password: String)
+final case class RegisterAccount(name: String,
+                                 email: String,
+                                 password: String)
 
-object CreateAccount {
-  implicit val createAccountReads: Reads[CreateAccount] =
-    Reads[CreateAccount] {
+object RegisterAccount {
+  implicit val createAccountReads: Reads[RegisterAccount] =
+    Reads[RegisterAccount] {
       case json: JsObject =>
         val maybeCreateAccount =
           for {
@@ -16,7 +16,7 @@ object CreateAccount {
             email    <- (json \ "email").asOpt[String]
             password <- (json \ "password").asOpt[String]
           } yield {
-            CreateAccount(name, email, password)
+            RegisterAccount(name, email, password)
           }
 
         maybeCreateAccount match {

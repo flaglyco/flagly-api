@@ -77,17 +77,16 @@ class ApplicationRepository {
     sql.executeQuery().as(applicationRowParser.singleOpt)
   }
 
-  def getByToken(accountId: UUID, token: String)(implicit connection: Connection): Option[Application] = {
+  def getByToken(token: String)(implicit connection: Connection): Option[Application] = {
     val sql =
       SQL(
         """
           |SELECT id, account_id, name, token, created_at, updated_at
           |FROM applications
-          |WHERE account_id = {accountId}::uuid AND token = {token}
+          |WHERE token = {token}
         """.stripMargin
       ).on(
-        "accountId" -> accountId,
-        "token"     -> token
+        "token" -> token
       )
 
     sql.executeQuery().as(applicationRowParser.singleOpt)
