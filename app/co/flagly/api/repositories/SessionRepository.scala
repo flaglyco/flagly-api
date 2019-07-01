@@ -1,6 +1,7 @@
 package co.flagly.api.repositories
 
 import java.sql.Connection
+import java.util.UUID
 
 import anorm.SQL
 import co.flagly.api.models.Session
@@ -40,5 +41,19 @@ class SessionRepository {
       )
 
     sql.executeQuery().as(sessionRowParser.singleOpt)
+  }
+
+  def delete(id: UUID)(implicit connection: Connection): Unit = {
+    val sql =
+      SQL(
+        """
+          |DELETE FROM sessions
+          |WHERE id = {id}::uuid
+        """.stripMargin
+      ).on(
+        "id" -> id
+      )
+
+    sql.executeUpdate()
   }
 }

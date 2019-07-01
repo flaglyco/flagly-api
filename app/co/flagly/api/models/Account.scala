@@ -5,7 +5,7 @@ import java.util.UUID
 
 import anorm.{RowParser, Success}
 import co.flagly.api.auth.PasswordUtils
-import co.flagly.api.views.CreateAccount
+import co.flagly.api.views.RegisterAccount
 import co.flagly.utils.ZDT
 import play.api.libs.json.{Json, Writes}
 
@@ -42,14 +42,14 @@ object Account {
       Success(Account(id, name, email, password, salt, createdAt, updatedAt))
     }
 
-  def apply(createAccount: CreateAccount): Account = {
+  def apply(registerAccount: RegisterAccount): Account = {
     val salt = PasswordUtils.generateSalt()
 
     Account(
       id        = UUID.randomUUID,
-      name      = createAccount.name,
-      email     = createAccount.email,
-      password  = PasswordUtils.hash(createAccount.password, salt),
+      name      = registerAccount.name,
+      email     = registerAccount.email,
+      password  = PasswordUtils.hash(registerAccount.password, salt),
       salt      = salt,
       createdAt = ZDT.now,
       updatedAt = ZDT.now

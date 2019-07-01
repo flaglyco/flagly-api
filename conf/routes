@@ -1,6 +1,8 @@
 GET     /       co.flagly.api.controllers.RootController.index
 
-POST    /accounts       co.flagly.api.controllers.AccountController.create
+POST    /accounts/register      co.flagly.api.controllers.AccountController.register
+POST    /accounts/login         co.flagly.api.controllers.AccountController.login
+POST    /accounts/logout        co.flagly.api.controllers.AccountController.logout
 
 POST    /applications                   co.flagly.api.controllers.ApplicationController.create
 GET     /applications                   co.flagly.api.controllers.ApplicationController.get(name: Option[String])
