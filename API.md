@@ -83,6 +83,74 @@ X-Session-Token: some-session-token
 | ------------ | ----------------------------- |
 | Already Used | Email address is already used |
 
+### 2.2. Logging In to a Existing Account
+
+Logs in an existing account with given credentials. It does not require authorization.
+
+#### Example Request
+
+All fields are required.
+
+```
+POST /accounts/login HTTP/1.1
+Content-Length: 49
+Content-Type: application/json
+Host: api.flagly.co
+
+{
+    "email": "john@doe.com",
+    "password": "Pass1234"
+}
+```
+
+#### Example Response
+
+A successful response will include `X-Session-Token` header containing an active session token for the account that's just been logged in. You can use it for [account authorization](#account-authorization).
+
+```
+HTTP/1.1 200 OK
+Content-Length: 166
+Content-Type: application/json
+X-Request-Id: some-request-id
+X-Session-Token: some-session-token
+
+{
+    "id": "d4c464a5-db61-4255-80c0-6e48aea4c578",
+    "email": "john@doe.com",
+    "name": "John Doe",
+    "createdAt": "2019-07-03T16:37:10+03:00",
+    "updatedAt": "2019-07-03T16:37:10+03:00"
+}
+```
+
+#### Possible Errors
+
+| What          | When                         |
+| ------------- | ---------------------------- |
+| Authorization | Email or password is invalid |
+
+### 2.3. Logging Out of an Account
+
+Logs out an already logged in account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+All fields are required.
+
+```
+POST /accounts/logout HTTP/1.1
+Authorization: Bearer some-session-token
+Host: api.flagly.co
+```
+
+#### Example Response
+
+```
+HTTP/1.1 200 OK
+X-Request-Id: some-request-id
+```
+
+
 ## 3. Application APIs
 
 TODO
