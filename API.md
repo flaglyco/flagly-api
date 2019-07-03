@@ -38,7 +38,7 @@ Failing to provide a valid token will result in a `401 Unauthorized` error respo
 
 ## 2. Account APIs
 
-They are about managing Flagly accounts. They are used by [Flagly Dashboard](https://github.com/flaglyco/flagly-dashboard).
+To use Flagly, you need an account. Accounts are managed on [Flagly Dashboard](https://github.com/flaglyco/flagly-dashboard).
 
 ### 2.1. Registering a New Account
 
@@ -143,15 +143,58 @@ Authorization: Bearer some-session-token
 X-Request-Id: some-request-id
 ```
 
-
 ## 3. Application APIs
+
+Applications are a way of grouping flags. Each application belongs to an account. An account can have multiple applications. All application requests require [account authorization](#account-authorization).
+
+### 3.1. Creating an Application
+
+TODO
+
+### 3.2. Listing Applications
+
+TODO
+
+### 3.3. Getting an Application
+
+TODO
+
+### 3.4. Updating an Application
+
+TODO
+
+### 3.5. Deleting an Application
 
 TODO
 
 ## 4. Flag APIs
 
+A flag is a switch and it can have `true` or `false` as value. Each flag belongs to an application. An application can have multiple flags. Working with a flag requires the id of the application in the request path. All flag requests require [account authorization](#account-authorization).
+
+### 4.1. Creating a Flag
+
+TODO
+
+### 4.2. Listing Flags
+
+TODO
+
+### 4.3. Getting a Flag
+
+TODO
+
+### 4.4. Updating a Flag
+
+TODO
+
+### 5.5. Deleting a Flag
+
 TODO
 
 ## 5. SDK APIs
+
+Flagly SDKs make it easier to use Flagly as a client. For more details, check out the documentation of the SDK you're interested in. In order for an SDK to make requests on behalf of an application, SDK requests require [application authorization](#application-authorization).
+
+### 5.1. Getting a Flag
 
 TODO
