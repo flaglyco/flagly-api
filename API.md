@@ -22,13 +22,13 @@ All handled errors return an error Json in following format with an HTTP status 
 
 ### Account Authorization
 
-Requests that require account authorization expect `Authorization` header containing a bearer token. This token needs to belong to an account's session. They are generated when registering a new account or logging into an existing account. See [Account APIs](#account-apis) for details.
+Requests that require account authorization expect `Authorization` header containing a bearer token. This token needs to belong to an account's session. They are generated when registering a new account or logging into an existing account. See [Account APIs](#2-account-apis) for details.
 
 Failing to provide a valid token will result in a `401 Unauthorized` error response.
 
 ### Application Authorization
 
-Requests that require application authorization expect `Authorization` header containing a bearer token. This token needs to belong to an application. They are generated when an application is created. See [Application APIs](#application-apis) for details.
+Requests that require application authorization expect `Authorization` header containing a bearer token. This token needs to belong to an application. They are generated when an application is created. See [Application APIs](#3-application-apis) for details.
 
 Failing to provide a valid token will result in a `401 Unauthorized` error response.
 
@@ -44,7 +44,7 @@ Registers a new account with given details. It does not require authorization.
 
 All fields are required.
 
-```http
+```
 POST /accounts/register HTTP/1.1
 Content-Length: 69
 Content-Type: application/json
@@ -61,7 +61,7 @@ Host: api.flagly.co
 
 A successful response will have `201 Created` status and include `X-Session-Token` header containing an active session token for the account that's just been created. You can use it for [account authorization](#account-authorization).
 
-```http
+```
 HTTP/1.1 201 Created
 Content-Length: 166
 Content-Type: application/json
