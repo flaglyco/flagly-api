@@ -2,7 +2,7 @@
 
 ## 1. General Information
 
-Flagly APIs RESTful. They consume and produce Json data.
+Flagly APIs are RESTful. They consume and produce Json data.
 
 All successful responses will have `200 OK` status unless explicitly mentioned.
 
@@ -10,7 +10,7 @@ All successful responses will have `200 OK` status unless explicitly mentioned.
 
 ### Errors
 
-All handled errors return an error Json in following format with an HTTP status same as `code` field.
+All handled errors return an error Json in following format with an HTTP status same as `code` field. `causeMessage` might not exists for all errors.
 
 ```json
 {
@@ -22,13 +22,17 @@ All handled errors return an error Json in following format with an HTTP status 
 
 ### Account Authorization
 
-Requests that require account authorization expect `Authorization` header containing a bearer token. This token needs to belong to an account's session. They are generated when registering a new account or logging into an existing account. See [Account APIs](#2-account-apis) for details.
+Some requests that work on behalf of an account require account authorization. They expect `Authorization` header containing a bearer token that belongs to an account's session.
+
+They are generated when registering a new account or logging into an existing account. See [Account APIs](#2-account-apis) for details.
 
 Failing to provide a valid token will result in a `401 Unauthorized` error response.
 
 ### Application Authorization
 
-Requests that require application authorization expect `Authorization` header containing a bearer token. This token needs to belong to an application. They are generated when an application is created. See [Application APIs](#3-application-apis) for details.
+Some requests that work on behalf of an application (e.g. SDK requests) require application authorization. They expect `Authorization` header containing a bearer token that belongs to an application.
+
+They are generated when an application is created. See [SDK APIs](#5-sdk-apis) for details.
 
 Failing to provide a valid token will result in a `401 Unauthorized` error response.
 
@@ -45,10 +49,7 @@ Registers a new account with given details. It does not require authorization.
 All fields are required.
 
 ```
-POST /accounts/register HTTP/1.1
-Content-Length: 69
-Content-Type: application/json
-Host: api.flagly.co
+POST /accounts/register
 
 {
     "email": "john@doe.com",
@@ -62,9 +63,7 @@ Host: api.flagly.co
 A successful response will have `201 Created` status and include `X-Session-Token` header containing an active session token for the account that's just been created. You can use it for [account authorization](#account-authorization).
 
 ```
-HTTP/1.1 201 Created
-Content-Length: 166
-Content-Type: application/json
+201 Created
 X-Request-Id: some-request-id
 X-Session-Token: some-session-token
 
@@ -92,10 +91,7 @@ Logs in an existing account with given credentials. It does not require authoriz
 All fields are required.
 
 ```
-POST /accounts/login HTTP/1.1
-Content-Length: 49
-Content-Type: application/json
-Host: api.flagly.co
+POST /accounts/login
 
 {
     "email": "john@doe.com",
@@ -108,9 +104,7 @@ Host: api.flagly.co
 A successful response will include `X-Session-Token` header containing an active session token for the account that's just been logged in. You can use it for [account authorization](#account-authorization).
 
 ```
-HTTP/1.1 200 OK
-Content-Length: 166
-Content-Type: application/json
+200 OK
 X-Request-Id: some-request-id
 X-Session-Token: some-session-token
 
@@ -138,15 +132,14 @@ Logs out an already logged in account. It requires [account authorization](#acco
 All fields are required.
 
 ```
-POST /accounts/logout HTTP/1.1
+POST /accounts/logout
 Authorization: Bearer some-session-token
-Host: api.flagly.co
 ```
 
 #### Example Response
 
 ```
-HTTP/1.1 200 OK
+200 OK
 X-Request-Id: some-request-id
 ```
 
