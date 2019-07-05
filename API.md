@@ -64,8 +64,8 @@ A successful response will have `201 Created` status and include `X-Session-Toke
 
 ```
 201 Created
-X-Request-Id: some-request-id
-X-Session-Token: some-account-token
+X-Request-Id: {someRequestId}
+X-Session-Token: {someAccountToken}
 
 {
     "id": "d4c464a5-db61-4255-80c0-6e48aea4c578",
@@ -105,8 +105,8 @@ A successful response will include `X-Session-Token` header containing an active
 
 ```
 200 OK
-X-Request-Id: some-request-id
-X-Session-Token: some-account-token
+X-Request-Id: {someRequestId}
+X-Session-Token: {someAccountToken}
 
 {
     "id": "d4c464a5-db61-4255-80c0-6e48aea4c578",
@@ -133,14 +133,14 @@ All fields are required.
 
 ```
 POST /accounts/logout
-Authorization: Bearer some-account-token
+Authorization: Bearer {someAccountToken}
 ```
 
 #### Example Response
 
 ```
 200 OK
-X-Request-Id: some-request-id
+X-Request-Id: {someRequestId}
 ```
 
 ## 3. Application APIs
@@ -157,7 +157,7 @@ All fields are required.
 
 ```
 POST /applications
-Authorization: Bearer some-account-token
+Authorization: Bearer {someAccountToken}
 
 {
     "name": "test-application"
@@ -170,7 +170,7 @@ A successful response will have `201 Created` status. `token` field in response 
 
 ```
 201 Created
-X-Request-Id: some-request-id
+X-Request-Id: {someRequestId}
 
 {
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
@@ -198,7 +198,7 @@ When `name` query parameter is provided
 
 ```
 GET /applications?name={applicationName}
-Authorization: Bearer some-account-token
+Authorization: Bearer {someAccountToken}
 ```
 
 #### Example Response 1
@@ -207,7 +207,7 @@ Response payload will contain a Json object of the application with given name.
 
 ```
 200 OK
-X-Request-Id: some-request-id
+X-Request-Id: {someRequestId}
 
 {
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
@@ -225,7 +225,7 @@ When `name` query parameter is not provided
 
 ```
 GET /applications
-Authorization: Bearer some-account-token
+Authorization: Bearer {someAccountToken}
 ```
 
 #### Example Response 2
@@ -234,7 +234,7 @@ Response payload will contain a Json array of all the applications.
 
 ```
 200 OK
-X-Request-Id: some-request-id
+X-Request-Id: {someRequestId}
 
 [
   {
@@ -264,7 +264,7 @@ Id of the application is needed in request path.
 
 ```
 GET /applications/{applicationId}
-Authorization: Bearer some-account-token
+Authorization: Bearer {someAccountToken}
 ```
 
 #### Example Response
@@ -273,7 +273,7 @@ Response payload will contain a Json object of the application.
 
 ```
 200 OK
-X-Request-Id: some-request-id
+X-Request-Id: {someRequestId}
 
 {
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
@@ -293,11 +293,68 @@ X-Request-Id: some-request-id
 
 ### 3.4. Updating an Application
 
-TODO
+Updates an application with given details for authorized account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+All fields are required.
+
+```
+PUT /applications/{applicationId}
+Authorization: Bearer {someAccountToken}
+
+{
+    "name": "test-application"
+}
+```
+
+#### Example Response
+
+Response payload will contain a Json object of the application.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+{
+    "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
+    "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
+    "name": "test-application",
+    "token": "some-application-token",
+    "createdAt": "2019-07-03T18:44:14+03:00",
+    "updatedAt": "2019-07-03T18:44:14+03:00"
+}
+```
+
+#### Possible Errors
+
+| What         | When                                              |
+| ------------ | ------------------------------------------------- |
+| Already Used | Application name is already used for this account |
 
 ### 3.5. Deleting an Application
 
-TODO
+Deletes an application for authorized account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+```
+DELETE /applications/{applicationId}
+Authorization: Bearer {someAccountToken}
+```
+
+#### Example Response
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+```
+
+#### Possible Errors
+
+| What   | When                                                    |
+| ------ | ------------------------------------------------------- |
+| In Use | Application is still in use (by flags) for this account |
 
 ## 4. Flag APIs
 
