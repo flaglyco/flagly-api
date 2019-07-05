@@ -129,8 +129,6 @@ Logs out an already logged in account. It requires [account authorization](#acco
 
 #### Example Request
 
-All fields are required.
-
 ```
 POST /accounts/logout
 Authorization: Bearer {someAccountToken}
@@ -176,7 +174,7 @@ X-Request-Id: {someRequestId}
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
     "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
     "name": "test-application",
-    "token": "some-application-token",
+    "token": "someApplicationToken",
     "createdAt": "2019-07-03T18:44:14+03:00",
     "updatedAt": "2019-07-03T18:44:14+03:00"
 }
@@ -213,7 +211,7 @@ X-Request-Id: {someRequestId}
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
     "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
     "name": "test-application",
-    "token": "some-application-token",
+    "token": "someApplicationToken",
     "createdAt": "2019-07-03T18:44:14+03:00",
     "updatedAt": "2019-07-03T18:44:14+03:00"
 }
@@ -241,7 +239,7 @@ X-Request-Id: {someRequestId}
       "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
       "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
       "name": "test-application",
-      "token": "some-application-token",
+      "token": "someApplicationToken",
       "createdAt": "2019-07-03T18:44:14+03:00",
       "updatedAt": "2019-07-03T18:44:14+03:00"
   }
@@ -260,8 +258,6 @@ Gets an application for authorized account. It requires [account authorization](
 
 #### Example Request
 
-Id of the application is needed in request path.
-
 ```
 GET /applications/{applicationId}
 Authorization: Bearer {someAccountToken}
@@ -279,7 +275,7 @@ X-Request-Id: {someRequestId}
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
     "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
     "name": "test-application",
-    "token": "some-application-token",
+    "token": "someApplicationToken",
     "createdAt": "2019-07-03T18:44:14+03:00",
     "updatedAt": "2019-07-03T18:44:14+03:00"
 }
@@ -320,7 +316,7 @@ X-Request-Id: {someRequestId}
     "id": "c1b69e5b-ce2e-42e0-ab14-745ff7a611df",
     "accountId": "d4c464a5-db61-4255-80c0-6e48aea4c578",
     "name": "test-application",
-    "token": "some-application-token",
+    "token": "someApplicationToken",
     "createdAt": "2019-07-03T18:44:14+03:00",
     "updatedAt": "2019-07-03T18:44:14+03:00"
 }
@@ -362,23 +358,214 @@ A flag is a switch and it can have `true` or `false` as value. Each flag belongs
 
 ### 4.1. Creating a Flag
 
-TODO
+Creates a new flag with given details for authorized account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+All fields except for `description` are required.
+
+```
+POST /applications/{applicationId}/flags
+Authorization: Bearer {someAccountToken}
+
+{
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true
+}
+```
+
+#### Example Response
+
+A successful response will have `201 Created` status.
+
+```
+201 Created
+X-Request-Id: {someRequestId}
+
+{
+    "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+    "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true,
+    "createdAt": "2019-06-27T17:34:25+03:00",
+    "updatedAt": "2019-06-27T17:34:25+03:00"
+}
+```
+
+#### Possible Errors
+
+| What                | When                                           |
+| ------------------- | ---------------------------------------------- |
+| Invalid Application | Application does not exist for this account    |
+| Already Used        | Flag name is already used for this application |
 
 ### 4.2. Listing Flags
 
-TODO
+Finds one or lists all flags for authorized account depending on `name` query parameter. It requires [account authorization](#account-authorization).
+
+#### Example Request 1
+
+When `name` query parameter is provided
+
+```
+GET /applications/{applicationId}/flags?name={flagName}
+Authorization: Bearer {someAccountToken}
+```
+
+#### Example Response 1
+
+Response payload will contain a Json object of the flag with given name.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+{
+    "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+    "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true,
+    "createdAt": "2019-06-27T17:34:25+03:00",
+    "updatedAt": "2019-06-27T17:34:25+03:00"
+}
+```
+
+#### Example Request 2
+
+When `name` query parameter is not provided
+
+```
+GET /applications/{applicationId}/flags
+Authorization: Bearer {someAccountToken}
+```
+
+#### Example Response 2
+
+Response payload will contain a Json array of all the flags.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+[
+  {
+      "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+      "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+      "name": "test-flag",
+      "description": "Test Flag",
+      "value": true,
+      "createdAt": "2019-06-27T17:34:25+03:00",
+      "updatedAt": "2019-06-27T17:34:25+03:00"
+  }
+]
+```
+
+#### Possible Errors
+
+| What      | When                                                     |
+| --------- | -------------------------------------------------------- |
+| Not Found | Flag with given name does not exist for this application |
 
 ### 4.3. Getting a Flag
 
-TODO
+Gets a flag for authorized account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+```
+GET /applications/{applicationId}/flags/{flagId}
+Authorization: Bearer {someAccountToken}
+```
+
+#### Example Response
+
+Response payload will contain a Json object of the flag.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+{
+    "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+    "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true,
+    "createdAt": "2019-06-27T17:34:25+03:00",
+    "updatedAt": "2019-06-27T17:34:25+03:00"
+}
+```
+
+#### Possible Errors
+
+| What      | When                                     |
+| --------- | ---------------------------------------- |
+| Not Found | Flag does not exist for this application |
 
 ### 4.4. Updating a Flag
 
-TODO
+Updates a flag with given details for authorized account. It requires [account authorization](#account-authorization).
 
-### 5.5. Deleting a Flag
+#### Example Request
 
-TODO
+None of the fields are required. Provided values will be used in the update.
+
+```
+PUT /applications/{applicationId}/flags/{flagId}
+Authorization: Bearer {someAccountToken}
+
+{
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true
+}
+```
+
+#### Example Response
+
+Response payload will contain a Json object of the flag.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+{
+    "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+    "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true,
+    "createdAt": "2019-06-27T17:34:25+03:00",
+    "updatedAt": "2019-06-27T17:34:25+03:00"
+}
+```
+
+#### Possible Errors
+
+| What         | When                                           |
+| ------------ | ---------------------------------------------- |
+| Already Used | Flag name is already used for this application |
+
+### 4.5. Deleting a Flag
+
+Deletes a flag for authorized account. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+```
+DELETE /applications/{applicationId}/flags/{flagId}
+Authorization: Bearer {someAccountToken}
+```
+
+#### Example Response
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+```
 
 ## 5. SDK APIs
 
@@ -386,4 +573,36 @@ Flagly SDKs make it easier to use Flagly as a client. For more details, check ou
 
 ### 5.1. Getting a Flag
 
-TODO
+Gets a flag for authorized application. It requires [application authorization](#application-authorization).
+
+#### Example Request
+
+```
+GET /flags/{flagName}
+Authorization: Bearer {someApplicationToken}
+```
+
+#### Example Response
+
+Response payload will contain a Json object of the flag.
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+
+{
+    "id": "1354b6cf-f23d-4a93-9e54-bfb9eafd3d75",
+    "applicationId": "45f502c9-25c1-4a09-a7a3-f9d3768ffacf",
+    "name": "test-flag",
+    "description": "Test Flag",
+    "value": true,
+    "createdAt": "2019-06-27T17:34:25+03:00",
+    "updatedAt": "2019-06-27T17:34:25+03:00"
+}
+```
+
+#### Possible Errors
+
+| What      | When                                     |
+| --------- | ---------------------------------------- |
+| Not Found | Flag does not exist for this application |
