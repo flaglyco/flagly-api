@@ -7,8 +7,9 @@ Flagly is a feature-flag/remote-configuration manager.
 1. [Introduction](#introduction)
 2. [Development](#development)
 3. [Testing](#testing)
-4. [Contributing](#contributing)
-5. [License](#license)
+4. [API Documentation](API.md)
+5. [Contributing](#contributing)
+6. [License](#license)
 
 ## Introduction
 
