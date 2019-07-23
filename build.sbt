@@ -1,6 +1,8 @@
 organization in ThisBuild := "co.flagly"
-version      in ThisBuild := "0.1.0-SNAPSHOT"
+version      in ThisBuild := "0.1.0"
 scalaVersion in ThisBuild := "2.12.8"
+
+resolvers += Resolver.jcenterRepo
 
 lazy val `flagly-api` = (project in file("."))
   .enablePlugins(PlayScala)
@@ -9,7 +11,7 @@ lazy val `flagly-api` = (project in file("."))
       evolutions,
       jdbc,
       guice,
-      "co.flagly"               %% "flagly-core"        % "0.1.0-SNAPSHOT",
+      "co.flagly"                % "flagly-core"        % "0.1.0",
       "org.playframework.anorm" %% "anorm"              % "2.6.2",
       "org.postgresql"           % "postgresql"         % "42.2.5",
       "org.scalatest"           %% "scalatest"          % "3.0.5" % Test,
