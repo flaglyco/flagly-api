@@ -1,5 +1,4 @@
 organization in ThisBuild := "co.flagly"
-version      in ThisBuild := "0.1.1-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.8"
 
 resolvers += Resolver.jcenterRepo

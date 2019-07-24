@@ -11,6 +11,7 @@ import play.api.http.HttpErrorHandler
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
 import play.filters.HttpFiltersComponents
+import play.filters.cors.{CORSConfig, CORSFilter}
 import router.Routes
 
 class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx)
@@ -23,7 +24,7 @@ class FlaglyAPIComponents(ctx: Context) extends BuiltInComponentsFromContext(ctx
 
   override lazy val httpErrorHandler: HttpErrorHandler = new FlaglyAPIErrorHandler
 
-  override def httpFilters: Seq[EssentialFilter] = Seq.empty
+  override def httpFilters: Seq[EssentialFilter] = Seq(new CORSFilter(CORSConfig.fromConfiguration(configuration), httpErrorHandler))
 
   lazy val database: Database = dbApi.database("default")
 
