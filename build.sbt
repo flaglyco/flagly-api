@@ -1,7 +1,20 @@
+import ReleaseTransformations._
+
 organization in ThisBuild := "co.flagly"
 scalaVersion in ThisBuild := "2.12.8"
 
-skip in publish := true
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
 
 resolvers += Resolver.jcenterRepo
 
