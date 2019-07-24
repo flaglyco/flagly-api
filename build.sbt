@@ -1,6 +1,8 @@
 organization in ThisBuild := "co.flagly"
 scalaVersion in ThisBuild := "2.12.8"
 
+skip in publish := true
+
 resolvers += Resolver.jcenterRepo
 
 lazy val `flagly-api` = (project in file("."))
