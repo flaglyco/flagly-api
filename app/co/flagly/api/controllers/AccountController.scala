@@ -3,10 +3,11 @@ package co.flagly.api.controllers
 import co.flagly.api.auth.{AccountCtx, Ctx}
 import co.flagly.api.models.Account.accountWrites
 import co.flagly.api.services.AccountService
-import co.flagly.api.views.{RegisterAccount, LoginAccount}
+import co.flagly.api.views.{LoginAccount, RegisterAccount}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class AccountController(accountService: AccountService, cc: ControllerComponents) extends BaseController(cc) {
   val register: Action[RegisterAccount] =
@@ -30,5 +31,10 @@ class AccountController(accountService: AccountService, cc: ControllerComponents
       accountService.logout(ctx.currentSession).map { _ =>
         Ok
       }
+    }
+
+  val me: Action[AnyContent] =
+    accountAction(accountService) { implicit ctx: AccountCtx[AnyContent] =>
+      Future.successful(resultAsJson(ctx.account).withHeaders(AccountCtx.sessionTokenHeaderName -> ctx.currentSession.token))
     }
 }

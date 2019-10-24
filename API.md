@@ -141,6 +141,39 @@ Authorization: Bearer {someAccountToken}
 X-Request-Id: {someRequestId}
 ```
 
+### 2.4. Getting Logged In Account
+
+Gets logged in account with given credentials. It requires [account authorization](#account-authorization).
+
+#### Example Request
+
+```
+GET /accounts/me
+X-Session-Token: {someAccountToken}
+```
+
+#### Example Response
+
+```
+200 OK
+X-Request-Id: {someRequestId}
+X-Session-Token: {someAccountToken}
+
+{
+    "id": "d4c464a5-db61-4255-80c0-6e48aea4c578",
+    "email": "john@doe.com",
+    "name": "John Doe",
+    "createdAt": "2019-07-03T16:37:10+03:00",
+    "updatedAt": "2019-07-03T16:37:10+03:00"
+}
+```
+
+#### Possible Errors
+
+| What          | When             |
+| ------------- | ---------------- |
+| Authorization | Token is invalid |
+
 ## 3. Application APIs
 
 Applications are a way of grouping flags. Each application belongs to an account. An account can have multiple applications. All application requests require [account authorization](#account-authorization).

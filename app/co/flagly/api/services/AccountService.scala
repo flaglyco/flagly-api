@@ -4,7 +4,7 @@ import co.flagly.api.auth.PasswordUtils
 import co.flagly.api.models.{Account, Session}
 import co.flagly.api.repositories.{AccountRepository, SessionRepository}
 import co.flagly.api.utilities.PSQLErrors
-import co.flagly.api.views.{RegisterAccount, LoginAccount}
+import co.flagly.api.views.{LoginAccount, RegisterAccount}
 import co.flagly.core.FlaglyError
 import play.api.db.Database
 
@@ -12,14 +12,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 class AccountService(accounts: AccountRepository, sessions: SessionRepository, db: Database) extends BaseService(db) {
-  def logout(session: Session)(implicit ec: ExecutionContext): Future[Unit] =
-    withDB { implicit connection =>
-      sessions.delete(session.id)
-    } {
-      case NonFatal(t) =>
-        throw FlaglyError.of(s"Cannot logout session by token '${session.token}'!", t)
-    }
-
   def create(registerAccount: RegisterAccount)(implicit ec: ExecutionContext): Future[(Account, Session)] =
     withDBTransaction { implicit connection =>
       val account = accounts.create(Account(registerAccount))
@@ -48,6 +40,14 @@ class AccountService(accounts: AccountRepository, sessions: SessionRepository, d
     } {
       case NonFatal(t) =>
         FlaglyError.of(s"Cannot login account '${loginAccount.email}'!", t)
+    }
+
+  def logout(session: Session)(implicit ec: ExecutionContext): Future[Unit] =
+    withDB { implicit connection =>
+      sessions.delete(session.id)
+    } {
+      case NonFatal(t) =>
+        throw FlaglyError.of(s"Cannot logout session by token '${session.token}'!", t)
     }
 
   def getByToken(token: String)(implicit ec: ExecutionContext): Future[(Account, Session)] =
