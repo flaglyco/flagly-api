@@ -5,7 +5,8 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import anorm.{RowParser, SQL, Success}
-import co.flagly.core.{Flag, FlaglyError}
+import co.flagly.api.utilities.Errors
+import co.flagly.core.Flag
 
 class FlagRepository {
   def create(flag: Flag)(implicit connection: Connection): Flag = {
@@ -37,6 +38,7 @@ class FlagRepository {
           |SELECT id, application_id, name, description, value, created_at, updated_at
           |FROM flags
           |WHERE application_id = {applicationId}::uuid
+          |ORDER BY updated_at DESC, created_at DESC
         """.stripMargin
       ).on(
         "applicationId" -> applicationId
@@ -117,7 +119,7 @@ class FlagRepository {
     val affectedRows = sql.executeUpdate()
 
     if (affectedRows != 1) {
-      throw FlaglyError.of(s"Flag '$flagId' of application '$applicationId' does not exist!")
+      throw Errors.notFound("Flag does not exist!")
     }
   }
 

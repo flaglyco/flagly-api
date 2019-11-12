@@ -1,6 +1,6 @@
 package co.flagly.api
 
-import co.flagly.api.controllers.{AccountController, ApplicationController, FlagController, RootController, SDKController}
+import co.flagly.api.controllers._
 import co.flagly.api.repositories.{AccountRepository, ApplicationRepository, FlagRepository, SessionRepository}
 import co.flagly.api.services.{AccountService, ApplicationService, FlagService}
 import play.api.ApplicationLoader.Context

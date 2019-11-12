@@ -3,9 +3,8 @@ package co.flagly.api.services
 import co.flagly.api.auth.PasswordUtils
 import co.flagly.api.models.{Account, Session}
 import co.flagly.api.repositories.{AccountRepository, SessionRepository}
-import co.flagly.api.utilities.PSQLErrors
+import co.flagly.api.utilities.{Errors, PSQLErrors}
 import co.flagly.api.views.{LoginAccount, RegisterAccount}
-import co.flagly.core.FlaglyError
 import play.api.db.Database
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,18 +19,18 @@ class AccountService(accounts: AccountRepository, sessions: SessionRepository, d
       account -> session
     } {
       case PSQLErrors.UniqueKeyInsert(column, value) =>
-        FlaglyError.of(s"Cannot create account because '$column' as '$value' is already used!")
+        Errors.badRequest.message("Cannot create account!").data("reason", s"'$value' as '$column' is already used!")
     }
 
   def login(loginAccount: LoginAccount)(implicit ec: ExecutionContext): Future[(Account, Session)] =
     withDBTransaction { implicit connection =>
       accounts.getByEmail(loginAccount.email) match {
         case None =>
-          throw FlaglyError.of(s"Cannot login account '${loginAccount.email}' because email or password is invalid!")
+          throw Errors.unauthorized("Email or password is invalid!").data("email", loginAccount.email)
 
         case Some(account) =>
           if (PasswordUtils.hash(loginAccount.password, account.salt) != account.password) {
-            throw FlaglyError.of(s"Cannot login account '${loginAccount.email}' because email or password is invalid!")
+            throw Errors.unauthorized("Email or password is invalid!").data("email", loginAccount.email)
           } else {
             val session = sessions.create(Session(account.id))
             account -> session
@@ -39,7 +38,7 @@ class AccountService(accounts: AccountRepository, sessions: SessionRepository, d
       }
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot login account '${loginAccount.email}'!", t)
+        Errors.unauthorized.message("Cannot login!").data("email", loginAccount.email).cause(t)
     }
 
   def logout(session: Session)(implicit ec: ExecutionContext): Future[Unit] =
@@ -47,19 +46,19 @@ class AccountService(accounts: AccountRepository, sessions: SessionRepository, d
       sessions.delete(session.id)
     } {
       case NonFatal(t) =>
-        throw FlaglyError.of(s"Cannot logout session by token '${session.token}'!", t)
+        throw Errors.unauthorized("Cannot logout!").data("token", session.token).cause(t)
     }
 
   def getByToken(token: String)(implicit ec: ExecutionContext): Future[(Account, Session)] =
     withDB { implicit connection =>
       sessions.getByToken(token) match {
         case None =>
-          throw FlaglyError.of(401, s"Session does not exist!")
+          throw Errors.unauthorized("Session does not exist!")
 
         case Some(session) =>
           accounts.get(session.accountId) match {
             case None =>
-              throw FlaglyError.of(401, s"Account '${session.accountId}' does not exist!")
+              throw Errors.unauthorized("Account does not exist!")
 
             case Some(account) =>
               account -> session
@@ -67,6 +66,6 @@ class AccountService(accounts: AccountRepository, sessions: SessionRepository, d
       }
     } {
       case NonFatal(t) =>
-        throw FlaglyError.of(s"Cannot get account and session by token '$token'!", t)
+        throw Errors.unauthorized("Cannot get account and session!").data("token", token).cause(t)
     }
 }
