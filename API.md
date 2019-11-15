@@ -10,13 +10,17 @@ All successful responses will have `200 OK` status unless explicitly mentioned.
 
 ### Errors
 
-All handled errors return an error Json in following format with an HTTP status same as `code` field. `causeMessage` might not exists for all errors.
+Flagly API uses [e](https://github.com/makiftutuncu/e) for modelling errors. All handled errors return an error Json in following format with an HTTP status same as the value of `code` field.
 
 ```json
 {
   "code": 400,
-  "message": "An error message",
-  "causeMessage": "Details about the cause of the error"
+  "name": "error-name",
+  "message": "Human readable error message",
+  "cause": "Details about the cause of the error",
+  "data": {
+    "key": "value"
+  }
 }
 ```
 
