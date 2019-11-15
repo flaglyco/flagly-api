@@ -2,7 +2,8 @@ package co.flagly.api.controllers
 
 import co.flagly.api.auth.{AccountCtx, ApplicationCtx, Ctx}
 import co.flagly.api.services.{AccountService, ApplicationService}
-import co.flagly.core.FlaglyError
+import co.flagly.api.utilities.Errors
+import dev.akif.e.E
 import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.{Json, Reads, Writes}
 import play.api.mvc._
@@ -37,7 +38,7 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
         .getOrElse("")
 
       if (token.isEmpty) {
-        Future.failed(FlaglyError.of(401, "Token is missing!"))
+        Future.failed(Errors.unauthorized("Token is missing!"))
       } else {
         accountService.getByToken(token).flatMap {
           case (account, session) =>
@@ -46,8 +47,8 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
               result.withHeaders(Ctx.requestIdHeaderName -> ctx.requestId)
             }
         }.recoverWith {
-          case flaglyError: FlaglyError if flaglyError.code == 401 =>
-            Future.failed(FlaglyError.of(401, "Unauthorized!", flaglyError))
+          case e: E if e.code == 401 =>
+            Future.failed(Errors.unauthorized("Unauthorized!").cause(e))
         }
       }
     }
@@ -61,7 +62,7 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
         .getOrElse("")
 
       if (token.isEmpty) {
-        Future.failed(FlaglyError.of(401, "Token is missing!"))
+        Future.failed(Errors.unauthorized("Token is missing!"))
       } else {
         accountService.getByToken(token).flatMap {
           case (account, session) =>
@@ -70,8 +71,8 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
               result.withHeaders(Ctx.requestIdHeaderName -> ctx.requestId)
             }
         }.recoverWith {
-          case flaglyError: FlaglyError if flaglyError.code == 401 =>
-            Future.failed(FlaglyError.of(401, "Unauthorized!", flaglyError))
+          case e: E if e.code == 401 =>
+            Future.failed(Errors.unauthorized("Unauthorized!").cause(e))
         }
       }
     }
@@ -85,11 +86,11 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
         .getOrElse("")
 
       if (token.isEmpty) {
-        Future.failed(FlaglyError.of(401, "Token is missing!"))
+        Future.failed(Errors.unauthorized("Token is missing!"))
       } else {
         applicationService.getByToken(token).flatMap {
           case None =>
-            Future.failed(FlaglyError.of(401, "Token is invalid!"))
+            Future.failed(Errors.unauthorized("Token is invalid!"))
 
           case Some(application) =>
             val ctx = new ApplicationCtx(request, application)
@@ -97,8 +98,8 @@ class BaseController(cc: ControllerComponents) extends AbstractController(cc) {
               result.withHeaders(Ctx.requestIdHeaderName -> ctx.requestId)
             }
         }.recoverWith {
-          case flaglyError: FlaglyError if flaglyError.code == 401 =>
-            Future.failed(FlaglyError.of(401, "Unauthorized!", flaglyError))
+          case e: E if e.code == 401 =>
+            Future.failed(Errors.unauthorized("Unauthorized!").cause(e))
         }
       }
     }

@@ -6,7 +6,7 @@ import java.util.UUID
 import anorm.SQL
 import co.flagly.api.models.Application
 import co.flagly.api.models.Application.applicationRowParser
-import co.flagly.core.FlaglyError
+import co.flagly.api.utilities.Errors
 
 class ApplicationRepository {
   def create(application: Application)(implicit connection: Connection): Application = {
@@ -37,6 +37,7 @@ class ApplicationRepository {
           |SELECT id, account_id, name, token, created_at, updated_at
           |FROM applications
           |WHERE account_id = {accountId}::uuid
+          |ORDER BY updated_at DESC, created_at DESC
         """.stripMargin
       ).on(
         "accountId" -> accountId
@@ -128,7 +129,7 @@ class ApplicationRepository {
     val affectedRows = sql.executeUpdate()
 
     if (affectedRows != 1) {
-      throw FlaglyError.of(s"Application '$applicationId' of account '$accountId' does not exist!")
+      throw Errors.notFound("Application does not exist!")
     }
   }
 }

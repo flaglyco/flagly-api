@@ -4,9 +4,8 @@ import java.util.UUID
 
 import co.flagly.api.models.Application
 import co.flagly.api.repositories.ApplicationRepository
-import co.flagly.api.utilities.PSQLErrors
+import co.flagly.api.utilities.{Errors, PSQLErrors}
 import co.flagly.api.views.{CreateApplication, UpdateApplication}
-import co.flagly.core.FlaglyError
 import co.flagly.utils.ZDT
 import play.api.db.Database
 
@@ -20,11 +19,11 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
 
       applications.create(application)
     } {
-      case PSQLErrors.ForeignKeyInsert(_, value, _) =>
-        FlaglyError.of(s"Cannot create application because account '$value' does not exist!")
+      case PSQLErrors.ForeignKeyInsert(column, value, table) =>
+        Errors.database("Cannot create application!").data("reason", s"'$column' with value '$value' does not exist in '$table'!")
 
       case PSQLErrors.UniqueKeyInsert(column, value) =>
-        FlaglyError.of(s"Cannot create application because '$column' as '$value' is already used!")
+        Errors.database("Cannot create application!").data("reason", s"'$value' as '$column' is already used!")
     }
 
   def getAll(accountId: UUID)(implicit ec: ExecutionContext): Future[List[Application]] =
@@ -32,7 +31,7 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       applications.getAll(accountId)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get applications of account '$accountId'!", t)
+        Errors.database(s"Cannot get applications!").data("accountId", accountId.toString).cause(t)
     }
 
   def get(accountId: UUID, applicationId: UUID)(implicit ec: ExecutionContext): Future[Option[Application]] =
@@ -40,7 +39,7 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       applications.get(accountId, applicationId)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get application '$applicationId' of account '$accountId'!", t)
+        Errors.database(s"Cannot get application!").data("applicationId", applicationId.toString).data("accountId", accountId.toString).cause(t)
     }
 
   def getByName(accountId: UUID, name: String)(implicit ec: ExecutionContext): Future[Option[Application]] =
@@ -48,7 +47,7 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       applications.getByName(accountId, name)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get application '$name' of account '$accountId'!", t)
+        Errors.database(s"Cannot get application!").data("name", name).data("accountId", accountId.toString).cause(t)
     }
 
   def getByToken(token: String)(implicit ec: ExecutionContext): Future[Option[Application]] =
@@ -56,14 +55,14 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       applications.getByToken(token)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get application for token '$token'!", t)
+        Errors.database(s"Cannot get application!").data("token", token).cause(t)
     }
 
   def update(accountId: UUID, applicationId: UUID, updateApplication: UpdateApplication)(implicit ec: ExecutionContext): Future[Application] =
     withDBTransaction { implicit connection =>
       applications.get(accountId, applicationId) match {
         case None =>
-          throw FlaglyError.of(s"Application '$applicationId' of account '$accountId' does not exist!")
+          throw Errors.notFound("Application does not exist!")
 
         case Some(application) =>
           val newApplication = Application(
@@ -79,10 +78,10 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       }
     } {
       case PSQLErrors.UniqueKeyInsert(column, value) =>
-        FlaglyError.of(s"Cannot update application '$applicationId' of account '$accountId' because '$column' as '$value' is already used!")
+        Errors.database("Cannot update application!").data("applicationId", applicationId.toString).data("accountId", accountId.toString).data("reason", s"'$value' as '$column' is already used!")
 
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot update application '$applicationId' of account '$accountId'!", t)
+        Errors.database("Cannot update application!").data("applicationId", applicationId.toString).data("accountId", accountId.toString).cause(t)
     }
 
 
@@ -91,9 +90,9 @@ class ApplicationService(applications: ApplicationRepository, db: Database) exte
       applications.delete(accountId, applicationId)
     } {
       case PSQLErrors.ForeignKeyDelete(column, value, table) =>
-        FlaglyError.of(s"Cannot delete application '$applicationId' of account '$accountId' because '$column' as '$value' is still used by '$table'!")
+        Errors.database("Cannot delete application!").data("applicationId", applicationId.toString).data("accountId", accountId.toString).data("reason", s"'$value' is still used by '$table' as '$column'!")
 
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot delete application '$applicationId' of account '$accountId'!", t)
+        Errors.database("Cannot delete application!").data("applicationId", applicationId.toString).data("accountId", accountId.toString).cause(t)
     }
 }

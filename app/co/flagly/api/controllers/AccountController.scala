@@ -35,6 +35,6 @@ class AccountController(accountService: AccountService, cc: ControllerComponents
 
   val me: Action[AnyContent] =
     accountAction(accountService) { implicit ctx: AccountCtx[AnyContent] =>
-      Future.successful(resultAsJson(ctx.account).withHeaders(AccountCtx.sessionTokenHeaderName -> ctx.currentSession.token))
+      Future.successful(resultAsJson(ctx.account))
     }
 }

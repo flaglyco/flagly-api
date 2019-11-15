@@ -3,9 +3,9 @@ package co.flagly.api.services
 import java.util.UUID
 
 import co.flagly.api.repositories.FlagRepository
-import co.flagly.api.utilities.PSQLErrors
+import co.flagly.api.utilities.{Errors, PSQLErrors}
 import co.flagly.api.views.{CreateFlag, UpdateFlag}
-import co.flagly.core.{Flag, FlaglyError}
+import co.flagly.core.Flag
 import co.flagly.utils.ZDT
 import play.api.db.Database
 
@@ -24,11 +24,11 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
 
       flags.create(flag)
     } {
-      case PSQLErrors.ForeignKeyInsert(_, value, _) =>
-        FlaglyError.of(s"Cannot create flag because application '$value' does not exist!")
+      case PSQLErrors.ForeignKeyInsert(column, value, table) =>
+        Errors.database("Cannot create flag!").data("reason", s"'$column' with value '$value' does not exist in '$table'!")
 
       case PSQLErrors.UniqueKeyInsert(column, value) =>
-        FlaglyError.of(s"Cannot create flag because '$column' as '$value' is already used!")
+        Errors.database("Cannot create flag!").data("reason", s"'$value' as '$column' is already used!")
     }
 
   def getAll(applicationId: UUID)(implicit ec: ExecutionContext): Future[List[Flag]] =
@@ -36,7 +36,7 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
       flags.getAll(applicationId)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get flags of application '$applicationId'!", t)
+        Errors.database("Cannot get flags!").data("applicationId", applicationId.toString).cause(t)
     }
 
   def get(applicationId: UUID, flagId: UUID)(implicit ec: ExecutionContext): Future[Option[Flag]] =
@@ -44,7 +44,7 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
       flags.get(applicationId, flagId)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get flag '$flagId' of application '$applicationId'!", t)
+        Errors.database("Cannot get flag!").data("flagId", flagId.toString).data("applicationId", applicationId.toString).cause(t)
     }
 
   def getByName(applicationId: UUID, name: String)(implicit ec: ExecutionContext): Future[Option[Flag]] =
@@ -52,14 +52,14 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
       flags.getByName(applicationId, name)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot get flag '$name' of application '$applicationId'!", t)
+        Errors.database("Cannot get flag!").data("name", name).data("applicationId", applicationId.toString).cause(t)
     }
 
   def update(applicationId: UUID, flagId: UUID, updateFlag: UpdateFlag)(implicit ec: ExecutionContext): Future[Flag] =
     withDBTransaction { implicit connection =>
       flags.get(applicationId, flagId) match {
         case None =>
-          throw FlaglyError.of(s"Flag '$flagId' of application '$applicationId' does not exist!")
+          throw Errors.notFound(s"Flag does not exist!")
 
         case Some(flag) =>
           val newFlag = Flag.of(
@@ -76,10 +76,10 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
       }
     } {
       case PSQLErrors.UniqueKeyInsert(column, value) =>
-        FlaglyError.of(s"Cannot update flag '$flagId' of application '$applicationId' because '$column' as '$value' is already used!")
+        Errors.database("Cannot update flag!").data("flagId", flagId.toString).data("applicationId", applicationId.toString).data("reason", s"'$value' as '$column' is already used!")
 
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot update flag '$flagId' of application '$applicationId'!", t)
+        Errors.database("Cannot update flag!").data("flagId", flagId.toString).data("applicationId", applicationId.toString).cause(t)
     }
 
 
@@ -88,6 +88,6 @@ class FlagService(flags: FlagRepository, db: Database) extends BaseService(db) {
       flags.delete(applicationId, flagId)
     } {
       case NonFatal(t) =>
-        FlaglyError.of(s"Cannot delete flag '$flagId' of application '$applicationId'!", t)
+        Errors.database("Cannot delete flag!").data("flagId", flagId.toString).data("applicationId", applicationId.toString).cause(t)
     }
 }

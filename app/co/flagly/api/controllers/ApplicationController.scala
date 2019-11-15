@@ -4,8 +4,8 @@ import java.util.UUID
 
 import co.flagly.api.auth.AccountCtx
 import co.flagly.api.services.{AccountService, ApplicationService}
+import co.flagly.api.utilities.Errors
 import co.flagly.api.views.{CreateApplication, UpdateApplication}
-import co.flagly.core.FlaglyError
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,7 +27,7 @@ class ApplicationController(applicationService: ApplicationService, accountServi
 
         case Some(n) =>
           applicationService.getByName(ctx.account.id, n).flatMap {
-            case None              => Future.failed(FlaglyError.of(s"Application '$n' does not exist!"))
+            case None              => Future.failed(Errors.notFound("Application does not exist!").data("name", n))
             case Some(application) => Future.successful(resultAsJson(application))
           }
       }
@@ -36,7 +36,7 @@ class ApplicationController(applicationService: ApplicationService, accountServi
   def getById(applicationId: UUID): Action[AnyContent] =
     accountAction(accountService) { ctx: AccountCtx[AnyContent] =>
       applicationService.get(ctx.account.id, applicationId).flatMap {
-        case None              => Future.failed(FlaglyError.of(s"Application '$applicationId' does not exist!"))
+        case None              => Future.failed(Errors.notFound("Application does not exist!").data("applicationId", applicationId.toString))
         case Some(application) => Future.successful(resultAsJson(application))
       }
     }

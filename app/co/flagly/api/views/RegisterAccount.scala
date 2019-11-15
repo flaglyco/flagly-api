@@ -20,11 +20,11 @@ object RegisterAccount {
           }
 
         maybeCreateAccount match {
-          case None       => JsError(s"$json is not a valid CreateAccount!")
+          case None       => JsError(s"$json is not a valid RegisterAccount!")
           case Some(flag) => JsSuccess(flag)
         }
 
       case json =>
-        JsError(s"$json is not a valid CreateAccount!")
+        JsError(s"$json is not a valid RegisterAccount!")
     }
 }
