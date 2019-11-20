@@ -1,20 +1,20 @@
-GET     /       co.flagly.api.controllers.RootController.index
+GET     /       co.flagly.api.RootController.index
 
-POST    /accounts/register      co.flagly.api.controllers.AccountController.register
-POST    /accounts/login         co.flagly.api.controllers.AccountController.login
-POST    /accounts/logout        co.flagly.api.controllers.AccountController.logout
-GET     /accounts/me            co.flagly.api.controllers.AccountController.me
+POST    /accounts/register      co.flagly.api.account.AccountController.register
+POST    /accounts/login         co.flagly.api.account.AccountController.login
+POST    /accounts/logout        co.flagly.api.account.AccountController.logout
+GET     /accounts/me            co.flagly.api.account.AccountController.me
 
-POST    /applications                   co.flagly.api.controllers.ApplicationController.create
-GET     /applications                   co.flagly.api.controllers.ApplicationController.get(name: Option[String])
-GET     /applications/:applicationId    co.flagly.api.controllers.ApplicationController.getById(applicationId: java.util.UUID)
-PUT     /applications/:applicationId    co.flagly.api.controllers.ApplicationController.update(applicationId: java.util.UUID)
-DELETE  /applications/:applicationId    co.flagly.api.controllers.ApplicationController.delete(applicationId: java.util.UUID)
+POST    /applications                   co.flagly.api.application.ApplicationController.create
+GET     /applications                   co.flagly.api.application.ApplicationController.get(name: Option[String])
+GET     /applications/:applicationId    co.flagly.api.application.ApplicationController.getById(applicationId: java.util.UUID)
+PUT     /applications/:applicationId    co.flagly.api.application.ApplicationController.update(applicationId: java.util.UUID)
+DELETE  /applications/:applicationId    co.flagly.api.application.ApplicationController.delete(applicationId: java.util.UUID)
 
-POST    /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.create(applicationId: java.util.UUID)
-GET     /applications/:applicationId/flags              co.flagly.api.controllers.FlagController.get(applicationId: java.util.UUID, name: Option[String])
-GET     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)
-PUT     /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.update(applicationId: java.util.UUID, flagId: java.util.UUID)
-DELETE  /applications/:applicationId/flags/:flagId      co.flagly.api.controllers.FlagController.delete(applicationId: java.util.UUID, flagId: java.util.UUID)
+POST    /applications/:applicationId/flags              co.flagly.api.flag.FlagController.create(applicationId: java.util.UUID)
+GET     /applications/:applicationId/flags              co.flagly.api.flag.FlagController.get(applicationId: java.util.UUID, name: Option[String])
+GET     /applications/:applicationId/flags/:flagId      co.flagly.api.flag.FlagController.getById(applicationId: java.util.UUID, flagId: java.util.UUID)
+PUT     /applications/:applicationId/flags/:flagId      co.flagly.api.flag.FlagController.update(applicationId: java.util.UUID, flagId: java.util.UUID)
+DELETE  /applications/:applicationId/flags/:flagId      co.flagly.api.flag.FlagController.delete(applicationId: java.util.UUID, flagId: java.util.UUID)
 
-GET     /flags/:name        co.flagly.api.controllers.SDKController.get(name: String)
+GET     /flags/:name        co.flagly.api.SDKController.get(name: String)
