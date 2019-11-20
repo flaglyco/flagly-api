@@ -1,8 +1,9 @@
 package co.flagly.api
 
-import co.flagly.api.controllers._
-import co.flagly.api.repositories.{AccountRepository, ApplicationRepository, FlagRepository, SessionRepository}
-import co.flagly.api.services.{AccountService, ApplicationService, FlagService}
+import co.flagly.api.account.{AccountController, AccountRepository, AccountService}
+import co.flagly.api.application.{ApplicationController, ApplicationRepository, ApplicationService}
+import co.flagly.api.flag.{FlagController, FlagRepository, FlagService}
+import co.flagly.api.session.SessionRepository
 import play.api.ApplicationLoader.Context
 import play.api.BuiltInComponentsFromContext
 import play.api.db.evolutions.EvolutionsComponents
