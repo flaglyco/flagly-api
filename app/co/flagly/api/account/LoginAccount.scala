@@ -1,27 +1,16 @@
 package co.flagly.api.account
 
-import play.api.libs.json.{JsError, JsObject, JsSuccess, Reads}
+import co.flagly.api.utilities.JsonUtils
+import play.api.libs.json.{JsObject, Json, Reads, Writes}
 
 final case class LoginAccount(email: String, password: String)
 
 object LoginAccount {
   implicit val loginAccountReads: Reads[LoginAccount] =
-    Reads[LoginAccount] {
-      case json: JsObject =>
-        val maybeLoginAccount =
-          for {
-            email    <- (json \ "email").asOpt[String]
-            password <- (json \ "password").asOpt[String]
-          } yield {
-            LoginAccount(email, password)
-          }
+    Json.reads[LoginAccount]
 
-        maybeLoginAccount match {
-          case None       => JsError(s"$json is not a valid LoginAccount!")
-          case Some(flag) => JsSuccess(flag)
-        }
-
-      case json =>
-        JsError(s"$json is not a valid LoginAccount!")
+  implicit val loginAccountWrites: Writes[LoginAccount] =
+    Json.writes[LoginAccount].transform { json: JsObject =>
+      JsonUtils.maskFields(json, "password")
     }
 }

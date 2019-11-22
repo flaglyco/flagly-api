@@ -1,70 +1,52 @@
 package co.flagly.api.account
 
-import co.flagly.api.common.Errors.PSQL
-import co.flagly.api.common.{BaseService, Errors}
+import cats.effect.IO
+import co.flagly.api.common.Errors
+import co.flagly.api.common.base.Service
 import co.flagly.api.session.{Session, SessionRepository}
+import co.flagly.api.utilities.IOExtensions._
 import co.flagly.api.utilities.PasswordUtils
 import play.api.db.Database
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
-
-class AccountService(accounts: AccountRepository, sessions: SessionRepository, db: Database) extends BaseService(db) {
-  def create(registerAccount: RegisterAccount)(implicit ec: ExecutionContext): Future[(Account, Session)] =
+class AccountService(accounts: AccountRepository, sessions: SessionRepository, db: Database) extends Service(db) {
+  def create(registerAccount: RegisterAccount): IO[(Account, Session)] =
     withDBTransaction { implicit connection =>
-      val account = accounts.create(Account(registerAccount))
-      val session = sessions.create(Session(account.id))
-
-      account -> session
-    } {
-      case PSQL.UniqueKeyInsert(column, value) =>
-        Errors.badRequest.message("Cannot create account!").data("reason", s"'$value' as '$column' is already used!")
-    }
-
-  def login(loginAccount: LoginAccount)(implicit ec: ExecutionContext): Future[(Account, Session)] =
-    withDBTransaction { implicit connection =>
-      accounts.getByEmail(loginAccount.email) match {
-        case None =>
-          throw Errors.unauthorized("Email or password is invalid!").data("email", loginAccount.email)
-
-        case Some(account) =>
-          if (PasswordUtils.hash(loginAccount.password, account.salt) != account.password) {
-            throw Errors.unauthorized("Email or password is invalid!").data("email", loginAccount.email)
-          } else {
-            val session = sessions.create(Session(account.id))
-            account -> session
-          }
+      for {
+        account <- accounts.create(Account(registerAccount))
+        session <- sessions.create(Session(account.id))
+      } yield {
+        account -> session
       }
-    } {
-      case NonFatal(t) =>
-        Errors.unauthorized.message("Cannot login!").data("email", loginAccount.email).cause(t)
     }
 
-  def logout(session: Session)(implicit ec: ExecutionContext): Future[Unit] =
+  def login(loginAccount: LoginAccount): IO[(Account, Session)] =
+    withDBTransaction { implicit connection =>
+      lazy val e = Errors.unauthorized("Email or password is invalid!").data("email", loginAccount.email)
+
+      for {
+        account <- accounts.getByEmail(loginAccount.email) ifNoneE e
+        session <- if (!PasswordUtils.isValid(account, loginAccount.password)) {
+                     IO.raiseError(e)
+                   } else {
+                     sessions.create(Session(account.id))
+                   }
+      } yield {
+        account -> session
+      }
+    }
+
+  def logout(session: Session): IO[Unit] =
     withDB { implicit connection =>
       sessions.delete(session.id)
-    } {
-      case NonFatal(t) =>
-        throw Errors.unauthorized("Cannot logout!").data("token", session.token).cause(t)
     }
 
-  def getByToken(token: String)(implicit ec: ExecutionContext): Future[(Account, Session)] =
+  def getByToken(token: String): IO[(Account, Session)] =
     withDB { implicit connection =>
-      sessions.getByToken(token) match {
-        case None =>
-          throw Errors.unauthorized("Session does not exist!")
-
-        case Some(session) =>
-          accounts.get(session.accountId) match {
-            case None =>
-              throw Errors.unauthorized("Account does not exist!")
-
-            case Some(account) =>
-              account -> session
-          }
+      for {
+        session <- sessions.getByToken(token)      ifNoneE Errors.unauthorized("Session does not exist!")
+        account <- accounts.get(session.accountId) ifNoneE Errors.unauthorized("Account does not exist!")
+      } yield {
+        account -> session
       }
-    } {
-      case NonFatal(t) =>
-        throw Errors.unauthorized("Cannot get account and session!").data("token", token).cause(t)
     }
 }

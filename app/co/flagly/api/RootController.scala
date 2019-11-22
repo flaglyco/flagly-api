@@ -1,14 +1,25 @@
 package co.flagly.api
 
-import co.flagly.api.common.{BaseController, Ctx}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import cats.effect.IO
+import co.flagly.api.common.PublicDürüm
+import co.flagly.api.durum.BasicCtx
+import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+class RootController(dürüm: PublicDürüm, cc: ControllerComponents) extends AbstractController(cc) {
+  import dürüm._
+  import dürüm.implicits._
 
-class RootController(cc: ControllerComponents) extends BaseController(cc) {
   val index: Action[AnyContent] =
-    publicAction { _: Ctx[AnyContent] =>
-      Future.successful(Ok)
+    playAction { request: Request[AnyContent] =>
+      basicAction(request) { _: BasicCtx[Unit] =>
+        buildResult(OK)
+      }
+    }
+
+  val ping: Action[AnyContent] =
+    playAction { request: Request[AnyContent] =>
+      actionWithOutput[String](request) { _: BasicCtx[Unit] =>
+        IO.pure("pong")
+      }
     }
 }

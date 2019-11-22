@@ -3,6 +3,8 @@ package co.flagly.api.utilities
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
+import co.flagly.api.account.Account
+
 import scala.util.Random
 
 object PasswordUtils {
@@ -19,4 +21,6 @@ object PasswordUtils {
       .map(b => "%02x".format(b))
       .mkString
   }
+
+  def isValid(account: Account, password: String): Boolean = hash(password, account.salt) == account.password
 }

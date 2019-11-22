@@ -1,37 +1,43 @@
 package co.flagly.api.account
 
-import co.flagly.api.common.{BaseController, Ctx}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import cats.effect.IO
+import co.flagly.api.common.PublicDürüm
+import co.flagly.api.durum.BasicCtx
+import co.flagly.api.session.Session
+import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+class AccountController(accountService: AccountService,
+                        publicDürüm: PublicDürüm,
+                        dürüm: AccountDürüm,
+                        cc: ControllerComponents) extends AbstractController(cc) {
+  import dürüm._
+  import dürüm.implicits._
 
-class AccountController(accountService: AccountService, cc: ControllerComponents) extends BaseController(cc) {
-  val register: Action[RegisterAccount] =
-    publicActionWithBody[RegisterAccount] { ctx: Ctx[RegisterAccount] =>
-      accountService.create(ctx.request.body).map {
-        case (account, session) =>
-          resultAsJson(account, Created).withHeaders(AccountCtx.sessionTokenHeaderName -> session.token)
+  val register: Action[AnyContent] =
+    playAction { request: Request[AnyContent] =>
+      publicDürüm.actionWithInputAndOutput[RegisterAccount, (Account, Session)](request, CREATED) { ctx: BasicCtx[RegisterAccount] =>
+        accountService.create(ctx.body)
       }
     }
 
-  val login: Action[LoginAccount] =
-    publicActionWithBody[LoginAccount] { ctx: Ctx[LoginAccount] =>
-      accountService.login(ctx.request.body).map {
-        case (account, session) =>
-          resultAsJson(account).withHeaders(AccountCtx.sessionTokenHeaderName -> session.token)
+  val login: Action[AnyContent] =
+    playAction { request: Request[AnyContent] =>
+      publicDürüm.actionWithInputAndOutput[LoginAccount, (Account, Session)](request) { ctx: BasicCtx[LoginAccount] =>
+        accountService.login(ctx.body)
       }
     }
 
   val logout: Action[AnyContent] =
-    accountAction(accountService) { ctx: AccountCtx[AnyContent] =>
-      accountService.logout(ctx.currentSession).map { _ =>
-        Ok
+    playAction { request: Request[AnyContent] =>
+      basicAction(request) { ctx: AccountCtx[Unit] =>
+        accountService.logout(ctx.session).flatMap(_ => buildResult(OK))
       }
     }
 
   val me: Action[AnyContent] =
-    accountAction(accountService) { implicit ctx: AccountCtx[AnyContent] =>
-      Future.successful(resultAsJson(ctx.account))
+    playAction { request: Request[AnyContent] =>
+      actionWithOutput[Account](request) { ctx: AccountCtx[Unit] =>
+        IO.pure(ctx.account)
+      }
     }
 }

@@ -16,17 +16,7 @@ final case class Application(id: UUID,
                              updatedAt: ZonedDateTime)
 
 object Application {
-  implicit val applicationWrites: Writes[Application] =
-    Writes[Application] { application =>
-      Json.obj(
-        "id"        -> application.id,
-        "accountId" -> application.accountId,
-        "name"      -> application.name,
-        "token"     -> application.token,
-        "createdAt" -> ZDT.toString(application.createdAt),
-        "updatedAt" -> ZDT.toString(application.updatedAt)
-      )
-    }
+  implicit val applicationWrites: Writes[Application] = Json.writes[Application]
 
   implicit val applicationRowParser: RowParser[Application] =
     RowParser[Application] { row =>

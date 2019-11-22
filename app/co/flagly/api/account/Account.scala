@@ -6,7 +6,7 @@ import java.util.UUID
 import anorm.{RowParser, Success}
 import co.flagly.api.utilities.PasswordUtils
 import co.flagly.utils.ZDT
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{JsObject, Json, Writes}
 
 final case class Account(id: UUID,
                          name: String,
@@ -18,14 +18,8 @@ final case class Account(id: UUID,
 
 object Account {
   implicit val accountWrites: Writes[Account] =
-    Writes[Account] { account =>
-      Json.obj(
-        "id"        -> account.id,
-        "name"      -> account.name,
-        "email"     -> account.email,
-        "createdAt" -> ZDT.toString(account.createdAt),
-        "updatedAt" -> ZDT.toString(account.updatedAt)
-      )
+    Json.writes[Account].transform { json: JsObject =>
+      json - "password" - "salt"
     }
 
   implicit val accountRowParser: RowParser[Account] =

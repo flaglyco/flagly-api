@@ -25,10 +25,11 @@ lazy val `flagly-api` = (project in file("."))
       evolutions,
       jdbc,
       guice,
-      "co.flagly"                % "flagly-core"        % "0.2.0",
-      "dev.akif"                %% "e-play-json"        % "0.2.2",
+      "co.flagly"                % "flagly-core"        % "0.2.2",
+      "dev.akif"                %% "e-play-json"        % "0.2.3",
       "org.playframework.anorm" %% "anorm"              % "2.6.5",
       "org.postgresql"           % "postgresql"         % "42.2.8",
+      "org.typelevel"           %% "cats-effect"        % "2.0.0",
       "org.scalatest"           %% "scalatest"          % "3.0.8" % Test,
       "org.scalatestplus.play"  %% "scalatestplus-play" % "4.0.3" % Test
     )

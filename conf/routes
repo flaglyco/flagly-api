@@ -1,4 +1,5 @@
-GET     /       co.flagly.api.RootController.index
+GET     /           co.flagly.api.RootController.index
+GET     /ping       co.flagly.api.RootController.ping
 
 POST    /accounts/register      co.flagly.api.account.AccountController.register
 POST    /accounts/login         co.flagly.api.account.AccountController.login
