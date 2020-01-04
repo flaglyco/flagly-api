@@ -2,11 +2,10 @@ package co.flagly.api.common.base
 
 import cats.effect.IO
 import co.flagly.api.account.AccountCtx
-import co.flagly.api.common.Errors
-import co.flagly.api.durum._
+import co.flagly.api.common.{EffectIOE, Errors}
 import co.flagly.api.session.Session
+import dev.akif.durum.{Ctx, Durum, InputBuilder, LogType, OutputBuilder, RequestLog, ResponseLog}
 import dev.akif.e.E
-import dev.akif.e.playjson.eWrites
 import play.api.Logger
 import play.api.http.{ContentTypes, HeaderNames, Writeable}
 import play.api.libs.json._
@@ -17,12 +16,19 @@ import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import scala.util.Try
 
-abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUTH]](cc: ControllerComponents) extends Dürüm[Request[AnyContent], Result, AUTH, CTX] {
+abstract class PlayDurum[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUTH]](cc: ControllerComponents) extends Durum[IO, E, Request[AnyContent], Result, AUTH, CTX]()(EffectIOE) {
   val logger: Logger
 
   def playAction(action: Request[AnyContent] => IO[Result]): Action[AnyContent] =
     cc.actionBuilder.async { request: Request[AnyContent] =>
       action(request).unsafeToFuture()
+    }
+
+  override val errorOutputBuilder: OutputBuilder[IO, E, Result] =
+    new OutputBuilder[IO, E, Result] {
+      override def build(status: Int, e: E): IO[Result] = IO.pure(Status(e.code)(e.toString).as(ContentTypes.JSON))
+
+      override def log(e: E): IO[String] = IO.pure(e.toString)
     }
 
   override def getHeadersOfRequest(request: Request[AnyContent]): Map[String, String] =
@@ -37,19 +43,7 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
   override def getStatusOfResponse(result: Result): Int =
     result.header.status
 
-  @tailrec
-  final override def buildFailedResponse(throwable: Throwable): IO[Result] =
-    throwable match {
-      case e: E => buildResult(e)
-      case t    => buildFailedResponse(Errors.from(t))
-    }
-
-  @tailrec
-  final override def buildFailedResponseAsString(throwable: Throwable): IO[String] =
-    throwable match {
-      case e: E => IO.pure(e.toString)
-      case t    => buildFailedResponseAsString(Errors.from(t))
-    }
+  override def getStatusOfError(e: E): Int = e.code
 
   override def responseWithHeader(result: Result, header: (String, String)): Result =
     result.withHeaders(header)
@@ -57,18 +51,18 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
   override def getHeadersOfResponse(result: Result): Map[String, String] =
     result.header.headers
 
-  override def logRequest(log: RequestLog, failed: Boolean): Unit =
-    if (failed) {
-      logger.error(log.toLogString(isIncoming = true))
+  override def logRequest(log: RequestLog): Unit =
+    if (log.failed) {
+      logger.error(log.toLog(LogType.IncomingRequest))
     } else {
-      logger.info(log.toLogString(isIncoming = true))
+      logger.info(log.toLog(LogType.IncomingRequest))
     }
 
-  override def logResponse(log: ResponseLog, failed: Boolean): Unit =
-    if (failed) {
-      logger.error(log.toLogString(isIncoming = false))
+  override def logResponse(log: ResponseLog): Unit =
+    if (log.failed) {
+      logger.error(log.toLog(LogType.OutgoingResponse))
     } else {
-      logger.info(log.toLogString(isIncoming = false))
+      logger.info(log.toLog(LogType.OutgoingResponse))
     }
 
   def buildResult(status: Int): IO[Result] =
@@ -79,11 +73,6 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
   def buildResult[O: Writeable](out: O, status: Int): IO[Result] =
     IO.pure {
       Status(status)(out)
-    }
-
-  def buildResult(e: E): IO[Result] =
-    IO.pure {
-      Status(e.code)(Json.toJson(e)).as(ContentTypes.JSON)
     }
 
   protected def getBearerToken(request: Request[_]): IO[String] =
@@ -99,15 +88,15 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
     }
 
   object implicits {
-    implicit val requestBuilderUnit: RequestBuilder[Request[AnyContent], Unit] =
-      new RequestBuilder[Request[AnyContent], Unit] {
+    implicit val inputBuilderUnit: InputBuilder[IO, Request[AnyContent], Unit] =
+      new InputBuilder[IO, Request[AnyContent], Unit] {
         override def build(request: Request[AnyContent]): IO[Unit] = IO.unit
 
         override def log(request: Request[AnyContent]): IO[String] = IO.pure("")
       }
 
-    implicit def requestBuilderJson[A: Reads : Writes]: RequestBuilder[Request[AnyContent], A] =
-      new RequestBuilder[Request[AnyContent], A] {
+    implicit def inputBuilderJson[A: Reads : Writes]: InputBuilder[IO, Request[AnyContent], A] =
+      new InputBuilder[IO, Request[AnyContent], A] {
         override def build(request: Request[AnyContent]): IO[A] =
           getAnyContentAsStringOrJson(request.body) match {
             case Left(body) =>
@@ -144,8 +133,8 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
           }
       }
 
-    implicit def responseBuilderJson[A: Writes]: ResponseBuilder[A, Result] =
-      new ResponseBuilder[A, Result] {
+    implicit def outputBuilderJson[A: Writes]: OutputBuilder[IO, A, Result] =
+      new OutputBuilder[IO, A, Result] {
         override def build(status: Int, a: A): IO[Result] =
           IO.pure {
             Status(status)(Json.toJson(a)).as(ContentTypes.JSON)
@@ -157,12 +146,12 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
           }
       }
 
-    implicit def responseBuilderJsonWithSession[A: Writes : ClassTag]: ResponseBuilder[(A, Session), Result] =
-      new ResponseBuilder[(A, Session), Result] {
+    implicit def outputBuilderJsonWithSession[A: Writes : ClassTag]: OutputBuilder[IO, (A, Session), Result] =
+      new OutputBuilder[IO, (A, Session), Result] {
         override def build(status: Int, tuple: (A, Session)): IO[Result] =
           tuple match {
             case (a: A, session: Session) =>
-              responseBuilderJson[A].build(status, a).map { result =>
+              outputBuilderJson[A].build(status, a).map { result =>
                 responseWithHeader(result, AccountCtx.sessionTokenHeaderName -> session.token)
               }
           }
@@ -170,7 +159,7 @@ abstract class PlayDürüm[AUTH, CTX[BODY] <: Ctx[Request[AnyContent], BODY, AUT
         override def log(tuple: (A, Session)): IO[String] =
           tuple match {
             case (a: A, _: Session) =>
-              responseBuilderJson[A].log(a)
+              outputBuilderJson[A].log(a)
           }
       }
 

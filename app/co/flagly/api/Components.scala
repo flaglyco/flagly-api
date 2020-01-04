@@ -1,11 +1,13 @@
 package co.flagly.api
 
-import co.flagly.api.account.{AccountController, AccountDürüm, AccountRepository, AccountService}
-import co.flagly.api.application.{ApplicationController, ApplicationDürüm, ApplicationRepository, ApplicationService}
-import co.flagly.api.common.PublicDürüm
-import co.flagly.api.durum.{Ctx, ResponseLog}
+import co.flagly.api.account.{AccountController, AccountDurum, AccountRepository, AccountService}
+import co.flagly.api.application.{ApplicationController, ApplicationDurum, ApplicationRepository, ApplicationService}
+import co.flagly.api.common.PublicDurum
 import co.flagly.api.flag.{FlagController, FlagRepository, FlagService}
 import co.flagly.api.session.SessionRepository
+import dev.akif.durum.Durum
+import dev.akif.durum.ResponseLog
+import dev.akif.durum.LogType
 import dev.akif.e.E
 import dev.akif.e.playjson.eWrites
 import play.api.ApplicationLoader.Context
@@ -48,15 +50,15 @@ class Components(ctx: Context) extends BuiltInComponentsFromContext(ctx)
   lazy val applicationService: ApplicationService = new ApplicationService(applicationRepository, database)
   lazy val flagService: FlagService               = new FlagService(flagRepository, database)
 
-  lazy val publicDürüm: PublicDürüm           = new PublicDürüm(requestLogger, controllerComponents)
-  lazy val accountDürüm: AccountDürüm         = new AccountDürüm(accountService, requestLogger, controllerComponents)
-  lazy val applicationDürüm: ApplicationDürüm = new ApplicationDürüm(applicationService, requestLogger, controllerComponents)
+  lazy val publicDurum: PublicDurum           = new PublicDurum(requestLogger, controllerComponents)
+  lazy val accountDurum: AccountDurum         = new AccountDurum(accountService, requestLogger, controllerComponents)
+  lazy val applicationDurum: ApplicationDurum = new ApplicationDurum(applicationService, requestLogger, controllerComponents)
 
-  lazy val rootController: RootController               = new RootController(publicDürüm, controllerComponents)
-  lazy val accountController: AccountController         = new AccountController(accountService, publicDürüm, accountDürüm, controllerComponents)
-  lazy val applicationController: ApplicationController = new ApplicationController(accountService, applicationService, accountDürüm, controllerComponents)
-  lazy val flagController: FlagController               = new FlagController(accountService, flagService, accountDürüm, controllerComponents)
-  lazy val sdkController: SDKController                 = new SDKController(applicationService, flagService, applicationDürüm, controllerComponents)
+  lazy val rootController: RootController               = new RootController(publicDurum, controllerComponents)
+  lazy val accountController: AccountController         = new AccountController(accountService, publicDurum, accountDurum, controllerComponents)
+  lazy val applicationController: ApplicationController = new ApplicationController(accountService, applicationService, accountDurum, controllerComponents)
+  lazy val flagController: FlagController               = new FlagController(accountService, flagService, accountDurum, controllerComponents)
+  lazy val sdkController: SDKController                 = new SDKController(applicationService, flagService, applicationDurum, controllerComponents)
 
   override def router: Router =
     new Routes(
@@ -70,8 +72,8 @@ class Components(ctx: Context) extends BuiltInComponentsFromContext(ctx)
 
   private def handleError(request: RequestHeader, e: E): Future[Result] = {
     val headers = request.headers.headers.toMap
-    val log = ResponseLog(e.code, request.method, request.uri, Ctx.getOrCreateId(headers), 0, headers, e.toString)
-    requestLogger.error(log.toLogString(isIncoming = false))
+    val log = ResponseLog(headers.getOrElse(Durum.idHeaderName, "N/A"), 0L, request.method, request.uri, headers, e.toString, failed = true, e.code, 0L)
+    requestLogger.error(log.toLog(LogType.OutgoingResponse))
     Future.successful(Status(e.code)(Json.toJson(e)).as(ContentTypes.JSON))
   }
 }

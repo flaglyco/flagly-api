@@ -26,6 +26,7 @@ lazy val `flagly-api` = (project in file("."))
       jdbc,
       guice,
       "co.flagly"                % "flagly-core"        % "0.2.2",
+      "dev.akif"                %% "durum-core"         % "0.1.0-SNAPSHOT",
       "dev.akif"                %% "e-play-json"        % "0.2.3",
       "org.playframework.anorm" %% "anorm"              % "2.6.5",
       "org.postgresql"           % "postgresql"         % "42.2.8",
